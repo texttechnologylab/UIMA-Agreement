@@ -8,7 +8,7 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>textimager-uima-agreement</artifactId>
+    <artifactId>biofid-agreement</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
     <properties>
