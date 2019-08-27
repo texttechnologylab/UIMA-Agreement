@@ -1,13 +1,15 @@
 package biofid.engine.agreement;
 
 import biofid.engine.ColumnPrinterEngine;
-import biofid.engine.reader.TextAnnotatorRepositoryCollectionReader;
 import de.tudarmstadt.ukp.dkpro.core.io.xmi.XmiReader;
 import org.apache.uima.collection.CollectionReader;
 import org.apache.uima.fit.factory.AggregateBuilder;
 import org.apache.uima.fit.factory.AnalysisEngineFactory;
 import org.apache.uima.fit.factory.CollectionReaderFactory;
+import org.apache.uima.fit.factory.UimaContextFactory;
+import org.apache.uima.fit.internal.ResourceManagerFactory;
 import org.apache.uima.fit.pipeline.SimplePipeline;
+import org.apache.uima.impl.UimaContext_ImplBase;
 import org.junit.jupiter.api.Test;
 import org.texttechnologylab.annotation.AbstractNamedEntity;
 import org.texttechnologylab.annotation.NamedEntity;
@@ -24,20 +26,23 @@ public class InterAnnotatorAgreementEngineTest {
 			String[] annotators = {"305236", "305235"};
 			String xmiPath = "src/test/out/xmi/";
 //			String txtPath = "src/test/out/txt/";
+//			Paths.get(xmiPath).toFile().mkdirs();
+//			Paths.get(txtPath).toFile().mkdirs();
+//			String sessionId = Files.toString(new File("src/test/resources/session.id"), StandardCharsets.UTF_8);
 //			CollectionReader collection = CollectionReaderFactory.createReader(
 //					TextAnnotatorRepositoryCollectionReader.class,
 //					TextAnnotatorRepositoryCollectionReader.PARAM_SOURCE_LOCATION, xmiPath,
 //					TextAnnotatorRepositoryCollectionReader.PARAM_TARGET_LOCATION, txtPath,
-//					TextAnnotatorRepositoryCollectionReader.PARAM_SESSION_ID, "", // FIXME: add session id here
+//					TextAnnotatorRepositoryCollectionReader.PARAM_SESSION_ID, sessionId,
 //					TextAnnotatorRepositoryCollectionReader.PARAM_FORCE_RESERIALIZE, true
 ////					, XmiReader.PARAM_LOG_FREQ, -1
 //			);
 			CollectionReader collection = CollectionReaderFactory.createReader(
 					XmiReader.class,
 					XmiReader.PARAM_PATTERNS, "[+]*.xmi",
-//					XmiReader.PARAM_PATTERNS, "[+]3713524.xmi",
-					XmiReader.PARAM_SOURCE_LOCATION, xmiPath,
-					XmiReader.PARAM_LOG_FREQ, -1
+//				    XmiReader.PARAM_PATTERNS, "[+]3713524.xmi",
+					XmiReader.PARAM_SOURCE_LOCATION, xmiPath
+					,XmiReader.PARAM_LOG_FREQ, -1
 			);
 			
 			AggregateBuilder ab = new AggregateBuilder();
@@ -67,31 +72,43 @@ public class InterAnnotatorAgreementEngineTest {
 					TTLabUnitizingIAACollectionProcessingEngine.PARAM_MULTI_CAS_HANDLING, TTLabUnitizingIAACollectionProcessingEngine.BOTH
 			));
 
-//			includeFlags = new String[]{TTLabCodingIAACollectionProcessingEngine.METAPHOR, TTLabCodingIAACollectionProcessingEngine.METONYM};
-//			ab.add(AnalysisEngineFactory.createEngineDescription(
-//					TTLabCodingIAACollectionProcessingEngine.class,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATION_CLASSES, annotationClasses,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_INCLUDE_FLAGS, includeFlags,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_MIN_VIEWS, 2,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotators,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, TTLabCodingIAACollectionProcessingEngine.WHITELIST,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_FILTER_FINGERPRINTED, filterFingerprinted,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_AGREEMENT_MEASURE, TTLabCodingIAACollectionProcessingEngine.KrippendorffAlphaAgreement,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_SET_SELECTION_STRATEGY, SetSelectionStrategy.MATCH,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_MULTI_CAS_HANDLING, TTLabCodingIAACollectionProcessingEngine.BOTH
-//			));
-//			ab.add(AnalysisEngineFactory.createEngineDescription(
-//					TTLabCodingIAACollectionProcessingEngine.class,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATION_CLASSES, annotationClasses,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_INCLUDE_FLAGS, includeFlags,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_MIN_VIEWS, 2,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotators,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, TTLabCodingIAACollectionProcessingEngine.WHITELIST,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_FILTER_FINGERPRINTED, filterFingerprinted,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_AGREEMENT_MEASURE, TTLabCodingIAACollectionProcessingEngine.KrippendorffAlphaAgreement,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_SET_SELECTION_STRATEGY, SetSelectionStrategy.MAX,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_MULTI_CAS_HANDLING, TTLabCodingIAACollectionProcessingEngine.BOTH
-//			));
+			includeFlags = new String[]{TTLabCodingIAACollectionProcessingEngine.METAPHOR, TTLabCodingIAACollectionProcessingEngine.METONYM};
+			ab.add(AnalysisEngineFactory.createEngineDescription(
+					TTLabCodingIAACollectionProcessingEngine.class,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATION_CLASSES, annotationClasses,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_INCLUDE_FLAGS, includeFlags,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_MIN_VIEWS, 2,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotators,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, TTLabCodingIAACollectionProcessingEngine.WHITELIST,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_FILTER_FINGERPRINTED, filterFingerprinted,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_AGREEMENT_MEASURE, TTLabCodingIAACollectionProcessingEngine.KrippendorffAlphaAgreement,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_SET_SELECTION_STRATEGY, SetSelectionStrategy.MATCH,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_MULTI_CAS_HANDLING, TTLabCodingIAACollectionProcessingEngine.BOTH
+			));
+			ab.add(AnalysisEngineFactory.createEngineDescription(
+					TTLabCodingIAACollectionProcessingEngine.class,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATION_CLASSES, annotationClasses,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_INCLUDE_FLAGS, includeFlags,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_MIN_VIEWS, 2,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotators,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, TTLabCodingIAACollectionProcessingEngine.WHITELIST,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_FILTER_FINGERPRINTED, filterFingerprinted,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_AGREEMENT_MEASURE, TTLabCodingIAACollectionProcessingEngine.PercentageAgreement,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_SET_SELECTION_STRATEGY, SetSelectionStrategy.MAX,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_MULTI_CAS_HANDLING, TTLabCodingIAACollectionProcessingEngine.BOTH
+			));
+			ab.add(AnalysisEngineFactory.createEngineDescription(
+					TTLabCodingIAACollectionProcessingEngine.class,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATION_CLASSES, annotationClasses,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_INCLUDE_FLAGS, includeFlags,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_MIN_VIEWS, 2,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotators,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, TTLabCodingIAACollectionProcessingEngine.WHITELIST,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_FILTER_FINGERPRINTED, filterFingerprinted,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_AGREEMENT_MEASURE, TTLabCodingIAACollectionProcessingEngine.FleissKappaAgreement,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_SET_SELECTION_STRATEGY, SetSelectionStrategy.ALL,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_MULTI_CAS_HANDLING, TTLabCodingIAACollectionProcessingEngine.BOTH
+			));
 			
 			SimplePipeline.runPipeline(collection, ab.createAggregate());
 		} catch (Exception e) {
