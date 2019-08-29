@@ -1,4 +1,4 @@
-package biofid.engine.reader;
+package biofid.agreement.reader;
 
 import com.google.common.collect.Sets;
 import de.tudarmstadt.ukp.dkpro.core.api.io.ProgressMeter;

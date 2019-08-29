@@ -1,11 +1,10 @@
-package biofid.engine.agreement;
+package biofid.agreement.engine;
 
 import biofid.utility.CountMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.uima.UimaContext;
-import org.apache.uima.cas.CAS;
 import org.apache.uima.cas.CASException;
 import org.apache.uima.fit.component.JCasConsumer_ImplBase;
 import org.apache.uima.fit.descriptor.ConfigurationParameter;

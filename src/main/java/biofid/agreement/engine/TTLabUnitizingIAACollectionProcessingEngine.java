@@ -1,4 +1,4 @@
-package biofid.engine.agreement;
+package biofid.agreement.engine;
 
 import com.google.common.collect.ImmutableSortedSet;
 import org.apache.uima.UimaContext;

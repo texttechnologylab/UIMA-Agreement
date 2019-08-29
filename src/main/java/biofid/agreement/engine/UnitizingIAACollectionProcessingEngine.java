@@ -1,4 +1,4 @@
-package biofid.engine.agreement;
+package biofid.agreement.engine;
 
 import biofid.utility.CountMap;
 import biofid.utility.IndexingMap;

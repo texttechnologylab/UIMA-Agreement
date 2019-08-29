@@ -1,15 +1,11 @@
-package biofid.engine.agreement;
+package biofid.agreement.engine;
 
-import biofid.engine.ColumnPrinterEngine;
 import de.tudarmstadt.ukp.dkpro.core.io.xmi.XmiReader;
 import org.apache.uima.collection.CollectionReader;
 import org.apache.uima.fit.factory.AggregateBuilder;
 import org.apache.uima.fit.factory.AnalysisEngineFactory;
 import org.apache.uima.fit.factory.CollectionReaderFactory;
-import org.apache.uima.fit.factory.UimaContextFactory;
-import org.apache.uima.fit.internal.ResourceManagerFactory;
 import org.apache.uima.fit.pipeline.SimplePipeline;
-import org.apache.uima.impl.UimaContext_ImplBase;
 import org.junit.jupiter.api.Test;
 import org.texttechnologylab.annotation.AbstractNamedEntity;
 import org.texttechnologylab.annotation.NamedEntity;
