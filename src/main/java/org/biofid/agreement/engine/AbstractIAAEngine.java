@@ -1,6 +1,6 @@
-package biofid.agreement.engine;
+package org.biofid.agreement.engine;
 
-import biofid.utility.CountMap;
+import org.biofid.utility.CountMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import org.apache.commons.lang3.StringUtils;

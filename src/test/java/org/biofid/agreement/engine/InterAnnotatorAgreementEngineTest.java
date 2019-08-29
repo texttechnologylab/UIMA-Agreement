@@ -1,4 +1,4 @@
-package biofid.agreement.engine;
+package org.biofid.agreement.engine;
 
 import de.tudarmstadt.ukp.dkpro.core.io.xmi.XmiReader;
 import org.apache.uima.collection.CollectionReader;

@@ -1,7 +1,7 @@
-package biofid.agreement.engine;
+package org.biofid.agreement.engine;
 
-import biofid.utility.CountMap;
-import biofid.utility.IndexingMap;
+import org.biofid.utility.CountMap;
+import org.biofid.utility.IndexingMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import de.tudarmstadt.ukp.dkpro.core.api.metadata.type.DocumentMetaData;

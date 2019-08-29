@@ -1,4 +1,4 @@
-package biofid.agreement.engine.annotation;
+package org.biofid.agreement.engine.annotation;
 
 import org.apache.uima.jcas.JCas;
 import org.apache.uima.jcas.cas.TOP_Type;

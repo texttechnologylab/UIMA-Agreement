@@ -11,4 +11,4 @@
  * @see <a href="https://textimager.hucompute.org/">TextImager</a>
  * @see <a href="http://www.textannotator.texttechnologylab.org/">TextAnnotator</a>
  */
-package biofid.agreement;
+package org.biofid.agreement;

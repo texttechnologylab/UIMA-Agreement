@@ -1,34 +1,35 @@
-package biofid.agreement.engine;
+package org.biofid.agreement.engine;
 
 import com.google.common.collect.ImmutableSortedSet;
 import org.apache.uima.UimaContext;
 import org.apache.uima.fit.descriptor.ConfigurationParameter;
 import org.apache.uima.jcas.tcas.Annotation;
 import org.apache.uima.resource.ResourceInitializationException;
-import org.dkpro.statistics.agreement.unitizing.KrippendorffAlphaUnitizingAgreement;
-import org.dkpro.statistics.agreement.unitizing.UnitizingAnnotationStudy;
+import org.dkpro.statistics.agreement.ICategorySpecificAgreement;
+import org.dkpro.statistics.agreement.coding.*;
 import org.texttechnologylab.annotation.AbstractNamedEntity;
 import org.texttechnologylab.annotation.NamedEntity;
 
-
 /**
- * Inter-annotator agreement engine using {@link UnitizingAnnotationStudy UnitizingAnnotationStudies} and
- * {@link KrippendorffAlphaUnitizingAgreement KrippendorffAlphaUnitizingAgreement}.
+ * Inter-annotator agreement engine using a {@link CodingAnnotationStudy CodingAnnotationStudy} and
+ * {@link ICategorySpecificAgreement ICategorySpecificAgreement} measure.
  * <p/>
- * Creates one <i>local</i> {@link UnitizingAnnotationStudy UnitizingAnnotationStudy} for each CAS to be processed and
- * concatenates the results in a single <i>global</i> study for which the Krippendorff-Alpha-Agreement is computed.
+ * Creates one {@link CodingAnnotationStudy CodingAnnotationStudy} in total for which the given agreement measure is computed.U
  * <p/>
  *
- * @see KrippendorffAlphaUnitizingAgreement
+ * @see CohenKappaAgreement
+ * @see FleissKappaAgreement
+ * @see KrippendorffAlphaAgreement
+ * @see PercentageAgreement
  */
-public class TTLabUnitizingIAACollectionProcessingEngine extends UnitizingIAACollectionProcessingEngine {
+public class TTLabCodingIAACollectionProcessingEngine extends CodingIAACollectionProcessingEngine {
 	/**
 	 * An array of flags which are to be included in the category name.<br>
 	 * Default: none.<br>
 	 * Choices: <ul>
-	 * <li>{@link TTLabUnitizingIAACollectionProcessingEngine#METAPHOR}</li>
-	 * <li>{@link TTLabUnitizingIAACollectionProcessingEngine#METONYM}</li>
-	 * <li>{@link TTLabUnitizingIAACollectionProcessingEngine#SPECIFIC}</li>
+	 * <li>{@link TTLabCodingIAACollectionProcessingEngine#METAPHOR}</li>
+	 * <li>{@link TTLabCodingIAACollectionProcessingEngine#METONYM}</li>
+	 * <li>{@link TTLabCodingIAACollectionProcessingEngine#SPECIFIC}</li>
 	 * </ul>
 	 */
 	public static final String PARAM_INCLUDE_FLAGS = "pIncludeFlags";
