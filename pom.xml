@@ -39,9 +39,9 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.texttechnologylab.annotation</groupId>
-            <artifactId>typesystem</artifactId>
-            <version>1.7</version>
+            <groupId>com.github.texttechnologylab</groupId>
+            <artifactId>UIMATypeSystem</artifactId>
+            <version>c0995f97da</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.uima</groupId>
