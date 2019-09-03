@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import de.tudarmstadt.ukp.dkpro.core.api.metadata.type.DocumentMetaData;
 import de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
@@ -204,8 +205,10 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
 		
 		if (pPrintStatistics) {
 			try {
+				String documentTitle = DocumentMetaData.get(jCas).getDocumentTitle();
+				CSVPrinter csvPrinter = new CSVPrinter(getAppendable(documentTitle.replaceAll(".xmi", ".csv")), csvFormat);
 				csvPrinter.printComment(String.format("KrippendorffAlphaUnitizingAgreement - %s",
-						DocumentMetaData.get(jCas).getDocumentTitle()
+						documentTitle
 				));
 				csvPrinter.printComment(String.format("Inter-annotator agreement for %d annotators: %s",
 						annotatorIndex.size(), annotatorIndex.keySet().toString()
@@ -215,7 +218,9 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
 				// Print the agreement for all categories
 				csvPrinter.printRecord("Category", "Count", "Agreement");
 				csvPrinter.printRecord("Overall", completeStudy.getUnitCount(), agreement.calculateAgreement());
-				printStudyResultsAndStatistics(agreement, categoryCount, annotatorCategoryCount, categories, annotatorIndex.keySet());
+				printStudyResultsAndStatistics(agreement, categoryCount, annotatorCategoryCount, categories, annotatorIndex.keySet(), csvPrinter);
+				csvPrinter.flush();
+				csvPrinter.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -253,6 +258,7 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
 		
 		if (pPrintStatistics) {
 			try {
+				CSVPrinter csvPrinter = new CSVPrinter(getAppendable("KrippendorffAlphaUnitizingAgreement.csv"), csvFormat);
 				csvPrinter.printComment("KrippendorffAlphaUnitizingAgreement, COMBINED");
 				csvPrinter.printComment(String.format("Inter-annotator agreement for %d annotators: %s",
 						annotatorIndex.size(), annotatorIndex.keySet().toString()
@@ -263,7 +269,9 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
 				
 				csvPrinter.printRecord("Category", "Count", "Agreement");
 				csvPrinter.printRecord("Overall", completeStudy.getUnitCount(), agreement.calculateAgreement());
-				printStudyResultsAndStatistics(agreement, categoryCount, annotatorCategoryCount, categories, annotatorIndex.keySet());
+				printStudyResultsAndStatistics(agreement, categoryCount, annotatorCategoryCount, categories, annotatorIndex.keySet(), csvPrinter);
+				csvPrinter.flush();
+				csvPrinter.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

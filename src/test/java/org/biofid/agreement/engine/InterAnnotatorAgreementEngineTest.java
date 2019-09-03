@@ -14,6 +14,7 @@ import org.texttechnologylab.annotation.NamedEntity;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
@@ -82,7 +83,7 @@ public class InterAnnotatorAgreementEngineTest {
 					TTLabUnitizingIAACollectionProcessingEngine.PARAM_FILTER_FINGERPRINTED, filterFingerprinted,
 					TTLabUnitizingIAACollectionProcessingEngine.PARAM_MULTI_CAS_HANDLING, TTLabUnitizingIAACollectionProcessingEngine.BOTH,
 					TTLabUnitizingIAACollectionProcessingEngine.PARAM_MIN_ANNOTATIONS, 10,
-					TTLabUnitizingIAACollectionProcessingEngine.PARAM_TARGET_LOCATION, "/resources/public/stoeckel/KrippendorffAlphaUnitizingAgreement.csv"
+					TTLabUnitizingIAACollectionProcessingEngine.PARAM_TARGET_LOCATION, "/resources/public/stoeckel/agreement/"
 			));
 
 //			includeFlags = new String[]{TTLabCodingIAACollectionProcessingEngine.METAPHOR, TTLabCodingIAACollectionProcessingEngine.METONYM};

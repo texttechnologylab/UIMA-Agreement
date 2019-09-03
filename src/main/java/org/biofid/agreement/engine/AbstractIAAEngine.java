@@ -43,7 +43,6 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 	 */
 	public static final String PARAM_ANNOTATION_CLASSES = "pAnnotationClasses";
 	protected CSVFormat csvFormat = CSVFormat.DEFAULT.withCommentMarker('#').withDelimiter(';');
-	protected CSVPrinter csvPrinter;
 	@ConfigurationParameter(name = PARAM_ANNOTATION_CLASSES, mandatory = false)
 	private String[] pAnnotationClasses;
 	ImmutableSet<Class<? extends Annotation>> annotationClasses = ImmutableSet.of(Annotation.class);
@@ -193,27 +192,28 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 		if (!listedAnnotators.isEmpty()) {
 			logger.info(String.format("%s annotators with ids: " + listedAnnotators.toString(), pRelation ? "Whitelisting" : "Blacklisting"));
 		}
-		
-		if (pPrintStatistics) {
-			try {
-				Appendable target;
-				switch (targetLocation) {
-					case "System.out":
-						target = System.out;
-						break;
-					case "System.err":
-						target = System.err;
-						break;
-					default:
-						Path path = Paths.get(targetLocation);
-						Files.createDirectories(path.getParent());
-						target = Files.newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+	}
+	
+	public Appendable getAppendable(@NotNull String suffix) throws IOException {
+		Appendable targetAppendable;
+		switch (targetLocation) {
+			case "System.out":
+				targetAppendable = System.out;
+				break;
+			case "System.err":
+				targetAppendable = System.err;
+				break;
+			default:
+				Path path = Paths.get(targetLocation);
+				if (path.toFile().exists() && path.toFile().isFile()) {
+					targetAppendable = Files.newBufferedWriter(Paths.get(path.getParent().toString(), suffix), StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+				} else {
+					if (!path.toFile().exists())
+						Files.createDirectories(path);
+					targetAppendable = Files.newBufferedWriter(Paths.get(path.toString(), suffix), StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
 				}
-				csvPrinter = new CSVPrinter(target, csvFormat);
-			} catch (IOException e) {
-				throw new ResourceInitializationException(e);
-			}
 		}
+		return targetAppendable;
 	}
 	
 	/**
@@ -243,7 +243,7 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 		System.out.println();
 	}
 	
-	protected void printStudyResultsAndStatistics(ICategorySpecificAgreement agreement, CountMap<String> categoryCount, HashMap<String, CountMap<String>> annotatorCategoryCount, TreeSet<String> categories, Collection<String> annotators) throws IOException {
+	protected void printStudyResultsAndStatistics(ICategorySpecificAgreement agreement, CountMap<String> categoryCount, HashMap<String, CountMap<String>> annotatorCategoryCount, TreeSet<String> categories, Collection<String> annotators, CSVPrinter csvPrinter) throws IOException {
 		for (String category : categories) {
 			csvPrinter.printRecord(category, categoryCount.get(category), agreement.calculateCategoryAgreement(category));
 		}
@@ -304,13 +304,5 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 	@Override
 	public void collectionProcessComplete() throws AnalysisEngineProcessException {
 		super.collectionProcessComplete();
-		if (pPrintStatistics) {
-			try {
-				csvPrinter.flush();
-				csvPrinter.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
 	}
 }

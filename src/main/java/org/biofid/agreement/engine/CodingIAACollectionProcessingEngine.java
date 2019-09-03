@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import de.tudarmstadt.ukp.dkpro.core.api.metadata.type.DocumentMetaData;
 import de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.uima.UimaContext;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
@@ -325,16 +326,20 @@ public class CodingIAACollectionProcessingEngine extends AbstractIAAEngine {
 		
 		if (pPrintStatistics) {
 			try {
+				String documentTitle = DocumentMetaData.get(jCas).getDocumentTitle();
+				CSVPrinter csvPrinter = new CSVPrinter(getAppendable(documentTitle.replaceAll(".xmi", ".csv")), csvFormat);
 				csvPrinter.printComment(String.format("%s, %s, %s\n" +
 								"Inter-annotator agreement for %d annotators: %s\n",
-						pAgreementMeasure, pSetSelectionStrategy, DocumentMetaData.get(jCas).getDocumentTitle(),
+						pAgreementMeasure, pSetSelectionStrategy, documentTitle,
 						annotatorList.size(), annotatorList.toString()
 				));
 				// Print the agreement for all categories
 				csvPrinter.printRecord("Category", "Count", "Agreement");
 				csvPrinter.printRecord("Overall", codingAnnotationStudy.getUnitCount(), agreement.calculateAgreement());
-				printStudyResultsAndStatistics((ICategorySpecificAgreement) agreement, globalCategoryCount, annotatorCategoryCount, categories, annotatorList);
-				printCategoryOverlap(globalCategoryOverlap);
+				printStudyResultsAndStatistics((ICategorySpecificAgreement) agreement, globalCategoryCount, annotatorCategoryCount, categories, annotatorList, csvPrinter);
+				printCategoryOverlap(globalCategoryOverlap, csvPrinter);
+				csvPrinter.flush();
+				csvPrinter.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -452,6 +457,7 @@ public class CodingIAACollectionProcessingEngine extends AbstractIAAEngine {
 		IAgreementMeasure agreement = calcualteAgreement(codingAnnotationStudy, globalCategoryCount, annotatorCategoryCount, globalCategoryOverlap);
 		if (pPrintStatistics) {
 			try {
+				CSVPrinter csvPrinter = new CSVPrinter(getAppendable(pAgreementMeasure + ".csv"), csvFormat);
 				csvPrinter.printComment(String.format("%s, %s, COMBINED", pAgreementMeasure, pSetSelectionStrategy));
 				csvPrinter.printComment(String.format("Inter-annotator agreement for %d annotators: %s",
 						annotatorList.size(), annotatorList.toString()
@@ -459,8 +465,10 @@ public class CodingIAACollectionProcessingEngine extends AbstractIAAEngine {
 				// Print the agreement for all categories
 				csvPrinter.printRecord("Category", "Count", "Agreement");
 				csvPrinter.printRecord("Overall", codingAnnotationStudy.getUnitCount(), agreement.calculateAgreement());
-				printStudyResultsAndStatistics((ICategorySpecificAgreement) agreement, globalCategoryCount, annotatorCategoryCount, categories, annotatorList);
-				printCategoryOverlap(globalCategoryOverlap);
+				printStudyResultsAndStatistics((ICategorySpecificAgreement) agreement, globalCategoryCount, annotatorCategoryCount, categories, annotatorList, csvPrinter);
+				printCategoryOverlap(globalCategoryOverlap, csvPrinter);
+				csvPrinter.flush();
+				csvPrinter.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -500,7 +508,7 @@ public class CodingIAACollectionProcessingEngine extends AbstractIAAEngine {
 		return agreement;
 	}
 	
-	private void printCategoryOverlap(CountMap<String> globalCategoryOverlap) throws IOException {
+	private void printCategoryOverlap(CountMap<String> globalCategoryOverlap, CSVPrinter csvPrinter) throws IOException {
 		csvPrinter.printComment("Inter-annotator category overlap");
 		csvPrinter.printRecord("Category", "Count");
 		Long totalOverlap = globalCategoryOverlap.values().stream().reduce(Long::sum).orElse(0L);
