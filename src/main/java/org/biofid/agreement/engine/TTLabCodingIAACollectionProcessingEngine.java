@@ -1,6 +1,7 @@
 package org.biofid.agreement.engine;
 
 import com.google.common.collect.ImmutableSortedSet;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.uima.UimaContext;
 import org.apache.uima.fit.descriptor.ConfigurationParameter;
 import org.apache.uima.jcas.tcas.Annotation;
@@ -44,6 +45,13 @@ public class TTLabCodingIAACollectionProcessingEngine extends CodingIAACollectio
 	public static final String METONYM = "Metonym";
 	public static final String SPECIFIC = "Specific";
 	
+	public static final String PARAM_PRUNE_PREFIX = "pPrunePrefix";
+	@ConfigurationParameter(
+			name = PARAM_PRUNE_PREFIX,
+			defaultValue = "org.texttechnologylab.annotation.type."
+	)
+	private String pPrunePrefix;
+	
 	@Override
 	public void initialize(UimaContext context) throws ResourceInitializationException {
 		super.initialize(context);
@@ -54,6 +62,8 @@ public class TTLabCodingIAACollectionProcessingEngine extends CodingIAACollectio
 	@Override
 	protected String getCatgoryName(Annotation annotation) {
 		String category = super.getCatgoryName(annotation);
+		if (StringUtils.isNotEmpty(pPrunePrefix))
+			category = category.replaceFirst(pPrunePrefix, "");
 		if (annotation instanceof NamedEntity) {
 			NamedEntity namedEntity = (NamedEntity) annotation;
 			if (includeFlags.contains(METAPHOR) && namedEntity.getMetaphor())

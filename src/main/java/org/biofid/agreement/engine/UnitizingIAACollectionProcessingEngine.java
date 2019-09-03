@@ -1,7 +1,5 @@
 package org.biofid.agreement.engine;
 
-import org.biofid.utility.CountMap;
-import org.biofid.utility.IndexingMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import de.tudarmstadt.ukp.dkpro.core.api.metadata.type.DocumentMetaData;
@@ -14,11 +12,14 @@ import org.apache.uima.fit.util.JCasUtil;
 import org.apache.uima.jcas.JCas;
 import org.apache.uima.jcas.cas.TOP;
 import org.apache.uima.jcas.tcas.Annotation;
+import org.biofid.utility.CountMap;
+import org.biofid.utility.IndexingMap;
 import org.dkpro.statistics.agreement.unitizing.IUnitizingAnnotationUnit;
 import org.dkpro.statistics.agreement.unitizing.KrippendorffAlphaUnitizingAgreement;
 import org.dkpro.statistics.agreement.unitizing.UnitizingAnnotationStudy;
 import org.texttechnologielab.annotation.type.Fingerprint;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
@@ -43,7 +44,6 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
 	private AtomicInteger documentOffset = new AtomicInteger(0);
 	private ArrayList<ImmutablePair<Integer, Iterable<IUnitizingAnnotationUnit>>> annotationStudies = new ArrayList<>();
 	private IndexingMap<String> annotatorIndex = new IndexingMap<>();
-	
 	
 	@Override
 	public void process(JCas jCas) throws AnalysisEngineProcessException {
@@ -169,7 +169,6 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
 	
 	@Override
 	public void collectionProcessComplete() throws AnalysisEngineProcessException {
-		super.collectionProcessComplete();
 		if (annotatorIndex.size() > 1) {
 			switch (pMultiCasHandling) {
 				case SEPARATE:
@@ -181,6 +180,7 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
 					break;
 			}
 		}
+		super.collectionProcessComplete();
 	}
 	
 	private void handleSeparate(JCas jCas, UnitizingAnnotationStudy completeStudy) {
@@ -202,16 +202,24 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
 			annotatorCategoryCount.get(annotatorIndex.getKey(id)).inc(category);
 		}
 		
-		// Compute and print the agreement for all categories
-		KrippendorffAlphaUnitizingAgreement agreement = new KrippendorffAlphaUnitizingAgreement(completeStudy);
-		System.out.printf("\nKrippendorffAlphaUnitizingAgreement - %s\n" +
-						"Inter-annotator agreement for %d annotators: %s\n" +
-						"Category\tCount\tAgreement\n" +
-						"Overall\t%d\t%f\n",
-				DocumentMetaData.get(jCas).getDocumentTitle(),
-				annotatorIndex.size(), annotatorIndex.keySet().toString(),
-				completeStudy.getUnitCount(), agreement.calculateAgreement());
-		printStudyResultsAndStatistics(agreement, categoryCount, annotatorCategoryCount, categories, annotatorIndex.keySet());
+		if (pPrintStatistics) {
+			try {
+				csvPrinter.printComment(String.format("KrippendorffAlphaUnitizingAgreement - %s",
+						DocumentMetaData.get(jCas).getDocumentTitle()
+				));
+				csvPrinter.printComment(String.format("Inter-annotator agreement for %d annotators: %s",
+						annotatorIndex.size(), annotatorIndex.keySet().toString()
+				));
+				
+				KrippendorffAlphaUnitizingAgreement agreement = new KrippendorffAlphaUnitizingAgreement(completeStudy);
+				// Print the agreement for all categories
+				csvPrinter.printRecord("Category", "Count", "Agreement");
+				csvPrinter.printRecord("Overall", completeStudy.getUnitCount(), agreement.calculateAgreement());
+				printStudyResultsAndStatistics(agreement, categoryCount, annotatorCategoryCount, categories, annotatorIndex.keySet());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	private void handleCombined() {
@@ -243,13 +251,23 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
 			}
 		}
 		
-		// Compute and print the agreement for all categories
-		KrippendorffAlphaUnitizingAgreement agreement = new KrippendorffAlphaUnitizingAgreement(completeStudy);
-		System.out.printf("\nKrippendorffAlphaUnitizingAgreement\nInter-annotator agreement for %d annotators: %s\n" +
-						"Category\tCount\tAgreement\n" +
-						"Overall\t%d\t%f\n",
-				annotatorIndex.size(), annotatorIndex.keySet().toString(), completeStudy.getUnitCount(), agreement.calculateAgreement());
-		printStudyResultsAndStatistics(agreement, categoryCount, annotatorCategoryCount, categories, annotatorIndex.keySet());
+		if (pPrintStatistics) {
+			try {
+				csvPrinter.printComment("KrippendorffAlphaUnitizingAgreement, COMBINED");
+				csvPrinter.printComment(String.format("Inter-annotator agreement for %d annotators: %s",
+						annotatorIndex.size(), annotatorIndex.keySet().toString()
+				));
+				
+				// Compute and print the agreement for all categories
+				KrippendorffAlphaUnitizingAgreement agreement = new KrippendorffAlphaUnitizingAgreement(completeStudy);
+				
+				csvPrinter.printRecord("Category", "Count", "Agreement");
+				csvPrinter.printRecord("Overall", completeStudy.getUnitCount(), agreement.calculateAgreement());
+				printStudyResultsAndStatistics(agreement, categoryCount, annotatorCategoryCount, categories, annotatorIndex.keySet());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 }

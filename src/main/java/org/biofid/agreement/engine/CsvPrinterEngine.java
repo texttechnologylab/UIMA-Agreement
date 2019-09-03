@@ -1,5 +1,7 @@
 package org.biofid.agreement.engine;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.biofid.utility.IndexingMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -26,11 +28,14 @@ import org.texttechnologylab.annotation.NamedEntity;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
 
-public class ColumnPrinterEngine extends JCasAnnotator_ImplBase {
+public class CsvPrinterEngine extends JCasAnnotator_ImplBase {
 	/**
 	 * Output file path.
 	 */
@@ -84,13 +89,13 @@ public class ColumnPrinterEngine extends JCasAnnotator_ImplBase {
 	protected String[] pAnnotatorList;
 	private ImmutableSet<String> listedAnnotators = ImmutableSet.of();
 	
-	private PrintWriter printWriter;
+	private CSVPrinter csvPrinter;
 	
 	@Override
 	public void initialize(UimaContext context) throws ResourceInitializationException {
 		super.initialize(context);
 		try {
-			printWriter = new PrintWriter(FileUtils.openOutputStream(new File(targetLocation)));
+			csvPrinter = new CSVPrinter(Files.newBufferedWriter(Paths.get(targetLocation), StandardCharsets.UTF_8), CSVFormat.DEFAULT.withCommentMarker('#').withDelimiter(';'));
 		} catch (IOException e) {
 			throw new ResourceInitializationException(e);
 		}
@@ -153,23 +158,19 @@ public class ColumnPrinterEngine extends JCasAnnotator_ImplBase {
 					viewHierarchyMap.put(viewName, neMap);
 				});
 				
-				printWriter.printf("#%s", new DocumentMetaData(jCas).getDocumentId());
-				for (String name : viewNames) {
-					printWriter.printf("\t%s", name);
-				}
-				printWriter.println();
-				
-				ArrayList<Token> tokens = new ArrayList<>(JCasUtil.select(jCas, Token.class));
-				for (int i = 0; i < tokens.size(); i++) {
-					Token tToken = tokens.get(i);
-					printWriter.printf("%s", tToken.getCoveredText());
-					for (String name : viewNames) {
-						HashMap<Integer, ArrayList<String>> tokenArrayListHashMap = viewHierarchyMap.get(name);
-						printWriter.printf("\t%s", tokenArrayListHashMap.get(i));
+				try {
+					csvPrinter.printRecord(Lists.asList(String.format("#%s", new DocumentMetaData(jCas).getDocumentId()), viewNames.toArray(new String[0])));
+					
+					ArrayList<Token> tokens = new ArrayList<>(JCasUtil.select(jCas, Token.class));
+					for (int i = 0; i < tokens.size(); i++) {
+						Token tToken = tokens.get(i);
+						final Integer index = i;
+						String[] annotations = viewNames.stream().map(name -> String.join(", ",viewHierarchyMap.get(name).get(index))).toArray(String[]::new);
+						csvPrinter.printRecord(Lists.asList(tToken.getCoveredText(), annotations));
 					}
-					printWriter.println();
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
-				printWriter.println("\n");
 			}
 		} catch (CASException e) {
 			e.printStackTrace();
@@ -179,7 +180,11 @@ public class ColumnPrinterEngine extends JCasAnnotator_ImplBase {
 	@Override
 	public void collectionProcessComplete() throws AnalysisEngineProcessException {
 		super.collectionProcessComplete();
-		printWriter.flush();
-		printWriter.close();
+		try {
+			csvPrinter.flush();
+			csvPrinter.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

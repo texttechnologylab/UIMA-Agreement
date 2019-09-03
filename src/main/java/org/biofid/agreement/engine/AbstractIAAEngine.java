@@ -1,10 +1,14 @@
 package org.biofid.agreement.engine;
 
-import org.biofid.utility.CountMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Streams;
+import de.tudarmstadt.ukp.dkpro.core.api.parameter.ComponentParameters;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.uima.UimaContext;
+import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CASException;
 import org.apache.uima.fit.component.JCasConsumer_ImplBase;
 import org.apache.uima.fit.descriptor.ConfigurationParameter;
@@ -13,10 +17,17 @@ import org.apache.uima.fit.util.JCasUtil;
 import org.apache.uima.jcas.JCas;
 import org.apache.uima.jcas.tcas.Annotation;
 import org.apache.uima.resource.ResourceInitializationException;
+import org.biofid.utility.CountMap;
 import org.dkpro.statistics.agreement.ICategorySpecificAgreement;
 import org.jetbrains.annotations.NotNull;
 import org.texttechnologielab.annotation.type.Fingerprint;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,6 +42,8 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 	 * Adding classes which extend other given classes might return unexpected results.
 	 */
 	public static final String PARAM_ANNOTATION_CLASSES = "pAnnotationClasses";
+	protected CSVFormat csvFormat = CSVFormat.DEFAULT.withCommentMarker('#').withDelimiter(';');
+	protected CSVPrinter csvPrinter;
 	@ConfigurationParameter(name = PARAM_ANNOTATION_CLASSES, mandatory = false)
 	private String[] pAnnotationClasses;
 	ImmutableSet<Class<? extends Annotation>> annotationClasses = ImmutableSet.of(Annotation.class);
@@ -137,6 +150,13 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 	 */
 	public static final String BOTH = "BOTH";
 	
+	public static final String PARAM_TARGET_LOCATION = ComponentParameters.PARAM_TARGET_LOCATION;
+	@ConfigurationParameter(
+			name = PARAM_TARGET_LOCATION,
+			defaultValue = "System.out"
+	)
+	private static String targetLocation;
+	
 	protected ExtendedLogger logger;
 	long viewCount;
 	LinkedHashSet<String> validViewNames;
@@ -173,6 +193,27 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 		if (!listedAnnotators.isEmpty()) {
 			logger.info(String.format("%s annotators with ids: " + listedAnnotators.toString(), pRelation ? "Whitelisting" : "Blacklisting"));
 		}
+		
+		if (pPrintStatistics) {
+			try {
+				Appendable target;
+				switch (targetLocation) {
+					case "System.out":
+						target = System.out;
+						break;
+					case "System.err":
+						target = System.err;
+						break;
+					default:
+						Path path = Paths.get(targetLocation);
+						Files.createDirectories(path.getParent());
+						target = Files.newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+				}
+				csvPrinter = new CSVPrinter(target, csvFormat);
+			} catch (IOException e) {
+				throw new ResourceInitializationException(e);
+			}
+		}
 	}
 	
 	/**
@@ -202,32 +243,34 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 		System.out.println();
 	}
 	
-	protected void printStudyResultsAndStatistics(ICategorySpecificAgreement agreement, CountMap<String> categoryCount, HashMap<String, CountMap<String>> annotatorCategoryCount, TreeSet<String> categories, Collection<String> annotators) {
+	protected void printStudyResultsAndStatistics(ICategorySpecificAgreement agreement, CountMap<String> categoryCount, HashMap<String, CountMap<String>> annotatorCategoryCount, TreeSet<String> categories, Collection<String> annotators) throws IOException {
 		for (String category : categories) {
-			System.out.printf("%s\t%d\t%f\n", category, categoryCount.get(category), agreement.calculateCategoryAgreement(category));
+			csvPrinter.printRecord(category, categoryCount.get(category), agreement.calculateCategoryAgreement(category));
 		}
-		System.out.println();
+		csvPrinter.println();
 		
 		// Print annotation statistics for each annotator and all categories
-		System.out.print("Annotation statistics:\nAnnotator");
-		for (String annotator : annotators) {
-			System.out.printf("\t#%s", annotator);
-		}
-		System.out.println();
+		csvPrinter.printComment("Annotation statistics:");
+		csvPrinter.printRecord(Lists.asList("Annotator", annotators.toArray(new String[0])));
 		
-		System.out.print("Total");
-		for (String annotator : annotators) {
-			System.out.printf("\t%d", annotatorCategoryCount.get(annotator).values().stream().reduce(Long::sum).orElse(0L));
-		}
-		System.out.println();
+		String[] countArray = annotators
+				.stream()
+				.map(annotator -> annotatorCategoryCount.get(annotator)
+						.values()
+						.stream()
+						.reduce(Long::sum).orElse(0L)
+						.toString())
+				.toArray(String[]::new);
+		csvPrinter.printRecord(Lists.asList("Total", countArray));
 		
 		for (String category : categories) {
-			System.out.printf("%s", category);
-			for (String annotator : annotators) {
-				System.out.printf("\t%d", annotatorCategoryCount.get(annotator).get(category));
-			}
-			System.out.println();
+			countArray = annotators
+					.stream()
+					.map(annotator -> annotatorCategoryCount.get(annotator).get(category).toString())
+					.toArray(String[]::new);
+			csvPrinter.printRecord(Lists.asList(category, countArray));
 		}
+		csvPrinter.println();
 	}
 	
 	protected String getCatgoryName(Annotation annotation) {
@@ -256,5 +299,16 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 		if (viewCount < pMinViews)
 			return false;
 		return true;
+	}
+	
+	@Override
+	public void collectionProcessComplete() throws AnalysisEngineProcessException {
+		super.collectionProcessComplete();
+		try {
+			csvPrinter.flush();
+			csvPrinter.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
