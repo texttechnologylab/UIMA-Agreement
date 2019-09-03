@@ -8,11 +8,13 @@ import org.apache.uima.fit.factory.JCasFactory;
 import org.apache.uima.fit.pipeline.SimplePipeline;
 import org.apache.uima.fit.util.JCasUtil;
 import org.apache.uima.jcas.JCas;
+import org.apache.uima.jcas.cas.StringArray;
 import org.apache.uima.util.CasIOUtils;
 import org.junit.jupiter.api.Test;
 import org.texttechnologylab.annotation.AbstractNamedEntity;
 import org.texttechnologylab.annotation.NamedEntity;
 import org.texttechnologylab.iaa.Agreement;
+import org.texttechnologylab.iaa.AgreementContainer;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -53,10 +55,20 @@ public class AgreementAnnotatorTest {
 				
 				SimplePipeline.runPipeline(jCas, annotatorEngine);
 				
+				JCas iaa = jCas.getView("IAA");
+				
+				AgreementContainer agreementContainer = Lists.newArrayList(JCasUtil.select(iaa, AgreementContainer.class)).get(0);
+				StringArray categorySpecificAgreementValues = agreementContainer.getCategorySpecificAgreementValues();
+				System.out.println("Category\tAgreement");
+				System.out.printf("Overall\t%f\n", agreementContainer.getOverallAgreementValue());
+				for (int i = 0; i < categorySpecificAgreementValues.size(); i++) {
+					String category = categorySpecificAgreementValues.get(i);
+					String value = categorySpecificAgreementValues.get(++i);
+					System.out.printf("%s\t%f\n", category, Double.parseDouble(value));
+				}
 				System.out.println();
 				
 				System.out.println("Token\tAgreement");
-				JCas iaa = jCas.getView("IAA");
 				Lists.newArrayList(JCasUtil.select(iaa, Agreement.class)).subList(0, 100)
 						.forEach(agreement -> System.out.printf("%s\t%f\n", agreement.getCoveredText(), agreement.getAgreementValue()));
 				System.out.println();
