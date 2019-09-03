@@ -340,9 +340,11 @@ public class CodingIAACollectionProcessingEngine extends AbstractIAAEngine {
 		
 		// If set, create per token annotations in the given JCas
 		if (pAnnotate) {
-			if (!(agreement instanceof ICodingItemSpecificAgreement))
-				logger.error(String.format(""));
-			createAgreementAnnotations(jCas, tokenItemLookup, (ICodingItemSpecificAgreement) agreement);
+			if (!(agreement instanceof ICodingItemSpecificAgreement)){
+				logger.error(String.format("The chosen agreement measure '%s' does not implement ICodingItemSpecificAgreement!", pAgreementMeasure));
+			} else  {
+				createAgreementAnnotations(jCas, tokenItemLookup, (ICodingItemSpecificAgreement) agreement);
+			}
 		}
 	}
 	

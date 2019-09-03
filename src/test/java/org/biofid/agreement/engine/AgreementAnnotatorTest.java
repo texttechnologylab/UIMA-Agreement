@@ -24,11 +24,12 @@ public class AgreementAnnotatorTest {
 	@Test
 	public void testAnnotatorAgreement() {
 		try {
-			String[] annotators = {"305236", "305235"};
+			String[] annotatorWhitelist = {"305236", "305235"};
+			String[] annotatorBlacklist = {"0", "302904"};
 			String xmiPath = "src/test/out/xmi/";
 			
 			JCas jCas = JCasFactory.createJCas();
-			try (FileInputStream inputStream = FileUtils.openInputStream(new File(xmiPath + "3713524.xmi"))) {
+			try (FileInputStream inputStream = FileUtils.openInputStream(new File(xmiPath + "3718079.xmi"))) {
 				CasIOUtils.load(inputStream, null, jCas.getCas(), true);
 				
 				
@@ -36,19 +37,24 @@ public class AgreementAnnotatorTest {
 				boolean filterFingerprinted = false;
 				String[] annotationClasses = {NamedEntity.class.getName(), AbstractNamedEntity.class.getName()};
 				
-				AnalysisEngine allEngine = AnalysisEngineFactory.createEngine(
+				AnalysisEngine annotatorEngine = AnalysisEngineFactory.createEngine(
 						AgreementAnnotatorEngine.class,
 						AgreementAnnotatorEngine.PARAM_ANNOTATION_CLASSES, annotationClasses,
 						AgreementAnnotatorEngine.PARAM_MIN_VIEWS, 2,
-						AgreementAnnotatorEngine.PARAM_ANNOTATOR_LIST, annotators,
-						AgreementAnnotatorEngine.PARAM_ANNOTATOR_RELATION, AgreementAnnotatorEngine.WHITELIST,
+//						AgreementAnnotatorEngine.PARAM_ANNOTATOR_LIST, annotatorWhitelist,
+//						AgreementAnnotatorEngine.PARAM_ANNOTATOR_RELATION, AgreementAnnotatorEngine.WHITELIST,
+						AgreementAnnotatorEngine.PARAM_ANNOTATOR_LIST, annotatorBlacklist,
+						AgreementAnnotatorEngine.PARAM_ANNOTATOR_RELATION, AgreementAnnotatorEngine.BLACKLIST,
 						AgreementAnnotatorEngine.PARAM_FILTER_FINGERPRINTED, filterFingerprinted,
 						AgreementAnnotatorEngine.PARAM_AGREEMENT_MEASURE, AgreementAnnotatorEngine.KrippendorffAlphaAgreement,
-						AgreementAnnotatorEngine.PARAM_SET_SELECTION_STRATEGY, SetSelectionStrategy.MATCH,
+						AgreementAnnotatorEngine.PARAM_SET_SELECTION_STRATEGY, SetSelectionStrategy.MAX,
 						AgreementAnnotatorEngine.PARAM_PRINT_STATS, false
 				);
 				
-				SimplePipeline.runPipeline(jCas, allEngine);
+				SimplePipeline.runPipeline(jCas, annotatorEngine);
+				
+				System.out.println();
+				
 				System.out.println("Token\tAgreement");
 				JCas iaa = jCas.getView("IAA");
 				Lists.newArrayList(JCasUtil.select(iaa, Agreement.class)).subList(0, 100)
