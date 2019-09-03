@@ -371,7 +371,7 @@ public class CodingIAACollectionProcessingEngine extends AbstractIAAEngine {
 			StringArray categoryValuePairs = new StringArray(viewIAA, categories.size() * 2);
 			for (int i = 0; i < categoryStrings.length; i++) {
 				String category = categoryStrings[i];
-				String categoryAgreement = Double.toString(((ICategorySpecificAgreement) agreement).calculateCategoryAgreement(category));
+				String categoryAgreement = String.format("%f", ((ICategorySpecificAgreement) agreement).calculateCategoryAgreement(category));
 				categoryValuePairs.set(i * 2, category);
 				categoryValuePairs.set(i * 2 + 1, categoryAgreement);
 			}
