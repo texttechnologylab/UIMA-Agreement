@@ -1,15 +1,13 @@
 package org.biofid.agreement.engine;
 
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
-import org.biofid.utility.IndexingMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Streams;
 import de.tudarmstadt.ukp.dkpro.core.api.metadata.type.DocumentMetaData;
 import de.tudarmstadt.ukp.dkpro.core.api.parameter.ComponentParameters;
 import de.tudarmstadt.ukp.dkpro.core.api.segmentation.type.Token;
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.uima.UimaContext;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
@@ -21,13 +19,12 @@ import org.apache.uima.jcas.JCas;
 import org.apache.uima.jcas.cas.TOP;
 import org.apache.uima.jcas.tcas.Annotation;
 import org.apache.uima.resource.ResourceInitializationException;
+import org.biofid.utility.IndexingMap;
 import org.texttechnologielab.annotation.type.Fingerprint;
 import org.texttechnologylab.annotation.AbstractNamedEntity;
 import org.texttechnologylab.annotation.NamedEntity;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -159,13 +156,14 @@ public class CsvPrinterEngine extends JCasAnnotator_ImplBase {
 				});
 				
 				try {
-					csvPrinter.printRecord(Lists.asList(String.format("#%s", new DocumentMetaData(jCas).getDocumentId()), viewNames.toArray(new String[0])));
+					Optional<DocumentMetaData> documentMetaData = Optional.ofNullable(DocumentMetaData.get(jCas));
+					csvPrinter.printRecord(Lists.asList(String.format("#%s", documentMetaData.isPresent() ? documentMetaData.get().getDocumentId() : "NULL"), viewNames.toArray(new String[0])));
 					
 					ArrayList<Token> tokens = new ArrayList<>(JCasUtil.select(jCas, Token.class));
 					for (int i = 0; i < tokens.size(); i++) {
 						Token tToken = tokens.get(i);
 						final Integer index = i;
-						String[] annotations = viewNames.stream().map(name -> String.join(", ",viewHierarchyMap.get(name).get(index))).toArray(String[]::new);
+						String[] annotations = viewNames.stream().map(name -> String.join(", ", viewHierarchyMap.get(name).get(index))).toArray(String[]::new);
 						csvPrinter.printRecord(Lists.asList(tToken.getCoveredText(), annotations));
 					}
 				} catch (IOException e) {
