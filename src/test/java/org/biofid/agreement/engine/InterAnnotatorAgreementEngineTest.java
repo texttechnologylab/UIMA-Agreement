@@ -62,8 +62,10 @@ public class InterAnnotatorAgreementEngineTest {
 					CsvPrinterEngine.class,
 					CsvPrinterEngine.PARAM_TARGET_LOCATION, "src/test/out/result.csv",
 					CsvPrinterEngine.PARAM_MIN_VIEWS, 2,
-					CsvPrinterEngine.PARAM_ANNOTATOR_LIST, annotatorWhitelist,
-					CsvPrinterEngine.PARAM_ANNOTATOR_RELATION, CsvPrinterEngine.WHITELIST,
+//					CsvPrinterEngine.PARAM_ANNOTATOR_LIST, annotatorWhitelist,
+//					CsvPrinterEngine.PARAM_ANNOTATOR_RELATION, UnitizingIAACollectionProcessingEngine.WHITELIST,
+					CsvPrinterEngine.PARAM_ANNOTATOR_LIST, annotatorBlacklist,
+					CsvPrinterEngine.PARAM_ANNOTATOR_RELATION, UnitizingIAACollectionProcessingEngine.BLACKLIST,
 					CsvPrinterEngine.PARAM_FILTER_FINGERPRINTED, filterFingerprinted
 			));
 			
