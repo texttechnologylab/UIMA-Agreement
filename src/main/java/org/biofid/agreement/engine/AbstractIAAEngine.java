@@ -304,11 +304,13 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 	@Override
 	public void collectionProcessComplete() throws AnalysisEngineProcessException {
 		super.collectionProcessComplete();
-		try {
-			csvPrinter.flush();
-			csvPrinter.close();
-		} catch (IOException e) {
-			e.printStackTrace();
+		if (pPrintStatistics) {
+			try {
+				csvPrinter.flush();
+				csvPrinter.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }
