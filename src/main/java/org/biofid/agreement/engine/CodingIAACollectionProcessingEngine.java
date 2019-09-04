@@ -326,11 +326,15 @@ public class CodingIAACollectionProcessingEngine extends AbstractIAAEngine {
 		
 		if (pPrintStatistics) {
 			try {
-				String documentTitle = DocumentMetaData.get(jCas).getDocumentTitle();
-				CSVPrinter csvPrinter = new CSVPrinter(getAppendable(documentTitle.replaceAll(".xmi", ".csv")), csvFormat);
+				String documentId = DocumentMetaData.get(jCas).getDocumentId();
+				documentId = documentId != null ? documentId : DocumentMetaData.get(jCas).getDocumentTitle();
+				documentId = documentId != null ? documentId : DocumentMetaData.get(jCas).getDocumentUri();
+				
+				String fileName = StringUtils.appendIfMissing(StringUtils.removeEnd(documentId, ".xmi"), ".csv");
+				CSVPrinter csvPrinter = getCsvPrinter(fileName);
 				csvPrinter.printComment(String.format("%s, %s, %s\n" +
 								"Inter-annotator agreement for %d annotators: %s\n",
-						pAgreementMeasure, pSetSelectionStrategy, documentTitle,
+						pAgreementMeasure, pSetSelectionStrategy, documentId,
 						annotatorList.size(), annotatorList.toString()
 				));
 				// Print the agreement for all categories
@@ -339,7 +343,6 @@ public class CodingIAACollectionProcessingEngine extends AbstractIAAEngine {
 				printStudyResultsAndStatistics((ICategorySpecificAgreement) agreement, globalCategoryCount, annotatorCategoryCount, categories, annotatorList, csvPrinter);
 				printCategoryOverlap(globalCategoryOverlap, csvPrinter);
 				csvPrinter.flush();
-				csvPrinter.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -457,7 +460,7 @@ public class CodingIAACollectionProcessingEngine extends AbstractIAAEngine {
 		IAgreementMeasure agreement = calcualteAgreement(codingAnnotationStudy, globalCategoryCount, annotatorCategoryCount, globalCategoryOverlap);
 		if (pPrintStatistics) {
 			try {
-				CSVPrinter csvPrinter = new CSVPrinter(getAppendable(pAgreementMeasure + ".csv"), csvFormat);
+				CSVPrinter csvPrinter = getCsvPrinter(pAgreementMeasure + ".csv");
 				csvPrinter.printComment(String.format("%s, %s, COMBINED", pAgreementMeasure, pSetSelectionStrategy));
 				csvPrinter.printComment(String.format("Inter-annotator agreement for %d annotators: %s",
 						annotatorList.size(), annotatorList.toString()
@@ -468,7 +471,6 @@ public class CodingIAACollectionProcessingEngine extends AbstractIAAEngine {
 				printStudyResultsAndStatistics((ICategorySpecificAgreement) agreement, globalCategoryCount, annotatorCategoryCount, categories, annotatorList, csvPrinter);
 				printCategoryOverlap(globalCategoryOverlap, csvPrinter);
 				csvPrinter.flush();
-				csvPrinter.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

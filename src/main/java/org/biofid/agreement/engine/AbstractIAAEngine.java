@@ -162,9 +162,9 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 	 * This can also be set to {@link System#out} or {@link System#err}, in which case no files will be created but the
 	 * output will be printed in the corresponding output stream.
 	 * <p/>
-	 * If the given path is an existing file, all statistics will then be appended to that file.
+	 * If the given path is an existing *.csv file, all statistics will then be appended to that file.
 	 * If {@link AbstractIAAEngine#PARAM_OVERWRITE_EXISTING} is set 'true', the file will be truncated to zero length
-	 * during the call of {@link AbstractIAAEngine#initialize}.
+	 * during the call of {@link AbstractIAAEngine#initialize}. If it does not exist, it will be created.
 	 * <p/>
 	 * If the given path does not exist, it will be created.
 	 */
@@ -191,7 +191,7 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 	protected ExtendedLogger logger;
 	long viewCount;
 	LinkedHashSet<String> validViewNames;
-	private BufferedWriter globalAppendable;
+	private CSVPrinter globalCsvPrinter;
 	
 	@Override
 	public void initialize(UimaContext context) throws ResourceInitializationException {
@@ -226,22 +226,30 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 			logger.info(String.format("%s annotators with ids: %s", pRelation ? "Whitelisting" : "Blacklisting", listedAnnotators.toString()));
 		}
 		
-		// Check if the target path is an existing file and if it is, whether it should be overwritten.
+		
 		try {
 			Path targetPath = Paths.get(targetLocation);
-			if (targetPath.toFile().exists() && targetPath.toFile().isFile()) {
+			if (targetPath.toFile().exists() && targetPath.toFile().isFile()) { // Check if the target path is an existing file and if it is, whether it should be overwritten.
 				if (pOverwriteExisting) {
-					globalAppendable = Files.newBufferedWriter(targetPath, StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+					BufferedWriter bufferedWriter = Files.newBufferedWriter(targetPath, StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+					globalCsvPrinter = new CSVPrinter(bufferedWriter, csvFormat);
 				} else {
-					globalAppendable = Files.newBufferedWriter(targetPath, StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.APPEND);
+					BufferedWriter bufferedWriter = Files.newBufferedWriter(targetPath, StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.APPEND);
+					globalCsvPrinter = new CSVPrinter(bufferedWriter, csvFormat);
 				}
+			} else if (!targetPath.toFile().exists() && targetPath.toString().endsWith(".csv")) { // Check if the target path denotes a file
+				Files.createDirectories(targetPath.getParent());
+				BufferedWriter bufferedWriter = Files.newBufferedWriter(targetPath, StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+				globalCsvPrinter = new CSVPrinter(bufferedWriter, csvFormat);
+			} else if (!targetPath.toFile().exists()) { // If it does denote a directory, create it if it does not exist
+				Files.createDirectories(targetPath);
 			}
 		} catch (Exception e) {
 			throw new ResourceInitializationException(e);
 		}
 	}
 	
-	public Appendable getAppendable(@NotNull String suffix) throws IOException {
+	public CSVPrinter getCsvPrinter(@NotNull String suffix) throws IOException {
 		Appendable targetAppendable;
 		switch (targetLocation) {
 			case "System.out":
@@ -251,25 +259,18 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 				targetAppendable = System.err;
 				break;
 			default:
+				// If initialize created global printer, return it
+				if (globalCsvPrinter != null) return globalCsvPrinter;
+				
 				Path path = Paths.get(targetLocation);
-				if (path.toFile().exists()) { // Path exists ..
-					if (path.toFile().isFile()) { // .. and is a file.
-						targetAppendable = globalAppendable;
-					} else { // .. and is a directory.
-						Path appendablePath = Paths.get(path.toString(), suffix);
-						if (!appendablePath.toFile().exists() || pOverwriteExisting) { // File does not exist or pOverwriteExisting is true.
-							targetAppendable = Files.newBufferedWriter(appendablePath, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
-						} else { // File does exist and pOverwriteExisting is false.
-							targetAppendable = Files.newBufferedWriter(appendablePath, StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.APPEND);
-						}
-					}
-				} else { // Path does not exist.
-					Path appendablePath = Paths.get(path.toString(), suffix);
-					Files.createDirectories(path);
+				Path appendablePath = Paths.get(path.toString(), suffix);
+				if (!appendablePath.toFile().exists() || pOverwriteExisting) { // File does not exist or pOverwriteExisting is true.
 					targetAppendable = Files.newBufferedWriter(appendablePath, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+				} else { // File does exist and pOverwriteExisting is false.
+					targetAppendable = Files.newBufferedWriter(appendablePath, StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.APPEND);
 				}
 		}
-		return targetAppendable;
+		return new CSVPrinter(targetAppendable, csvFormat);
 	}
 	
 	/**
@@ -402,5 +403,18 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 	@Override
 	public void collectionProcessComplete() throws AnalysisEngineProcessException {
 		super.collectionProcessComplete();
+	}
+	
+	@Override
+	public void destroy() {
+		super.destroy();
+		if (globalCsvPrinter != null) {
+			try {
+				globalCsvPrinter.flush();
+				globalCsvPrinter.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }
