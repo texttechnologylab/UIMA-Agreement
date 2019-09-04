@@ -53,7 +53,7 @@ public class TextAnnotatorRepositoryCollectionReader extends CasCollectionReader
 	@ConfigurationParameter(
 			name = PARAM_TEXT_ANNOTATOR_URL,
 			mandatory = false,
-			defaultValue = "http://textannotator.hucompute.org:80/"
+			defaultValue = "http://api.textannotator.texttechnologylab.org:80/"
 	)
 	private static String pTextAnnotatorUrl;
 	

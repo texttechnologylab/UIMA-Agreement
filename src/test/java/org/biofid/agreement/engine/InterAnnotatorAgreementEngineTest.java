@@ -23,7 +23,7 @@ public class InterAnnotatorAgreementEngineTest {
 	@Test
 	public void testAnnotatorAgreement() {
 		try {
-			final boolean download = false;
+			final boolean download = true;
 			
 			String xmiPath = "src/test/out/xmi/";
 			CollectionReader collection;

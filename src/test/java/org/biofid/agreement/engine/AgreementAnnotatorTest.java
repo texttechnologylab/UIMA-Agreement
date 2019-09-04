@@ -31,7 +31,7 @@ public class AgreementAnnotatorTest {
 			String xmiPath = "src/test/out/xmi/";
 			
 			JCas jCas = JCasFactory.createJCas();
-			try (FileInputStream inputStream = FileUtils.openInputStream(new File(xmiPath + "3718079.xmi"))) {
+			try (FileInputStream inputStream = FileUtils.openInputStream(new File(xmiPath + "3713524.xmi"))) {
 				CasIOUtils.load(inputStream, null, jCas.getCas(), true);
 				
 				

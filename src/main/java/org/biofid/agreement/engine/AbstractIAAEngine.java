@@ -352,7 +352,7 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 		
 		// Check for annotation count
 		if (pMinAnnotations > 0) {
-			for (String fullViewName : validViewNames) {
+			for (String fullViewName : ImmutableSet.copyOf(validViewNames)) {
 				JCas viewCas = jCas.getView(fullViewName);
 				
 				// Get all fingerprinted annotations
