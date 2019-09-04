@@ -69,16 +69,14 @@ public class TTLabUnitizingIAACollectionProcessingEngine extends UnitizingIAACol
 				category += "-" + METAPHOR;
 			if (includeFlags.contains(METONYM) && namedEntity.getMetonym())
 				category += "-" + METONYM;
-//			if (includeFlags.contains(SPECIFIC)) // FIXME
-//				category += "-" + SPECIFIC;
 		} else if (annotation instanceof AbstractNamedEntity) {
 			AbstractNamedEntity namedEntity = (AbstractNamedEntity) annotation;
 			if (includeFlags.contains(METAPHOR) && namedEntity.getMetaphor())
 				category += "-" + METAPHOR;
 			if (includeFlags.contains(METONYM) && namedEntity.getMetonym())
 				category += "-" + METONYM;
-//			if (includeFlags.contains(SPECIFIC)) // FIXME
-//				category += "-" + SPECIFIC;
+			if (includeFlags.contains(SPECIFIC) && namedEntity.getSpecific())
+				category += "-" + SPECIFIC;
 		}
 		return category;
 	}

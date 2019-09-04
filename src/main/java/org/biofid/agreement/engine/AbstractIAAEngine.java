@@ -348,6 +348,31 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 					return StringUtils.isNotEmpty(viewName) && pRelation == listedAnnotators.contains(viewName);
 				})
 				.collect(Collectors.toCollection(LinkedHashSet::new));
+		
+		// Check for annotation count
+		if (pMinAnnotations > 0) {
+			for (String fullViewName : validViewNames) {
+				JCas viewCas = jCas.getView(fullViewName);
+				
+				// Get all fingerprinted annotations
+				HashSet<TOP> fingerprinted = JCasUtil.select(viewCas, Fingerprint.class).stream()
+						.map(Fingerprint::getReference)
+						.collect(Collectors.toCollection(HashSet::new));
+				
+				long totalAnnotations = 0L;
+				for (Class<? extends Annotation> annotationClass : annotationClasses) {
+					// Count total annotations
+					totalAnnotations += getAnnotations(viewCas, fingerprinted, annotationClass).size();
+				}
+				
+				// Remove views with insufficient annotation count
+				if (totalAnnotations < pMinAnnotations) {
+					logger.debug(String.format("Removing view %s because it has insufficient annoations: %d < %d", fullViewName, totalAnnotations, pMinAnnotations));
+					validViewNames.remove(fullViewName);
+				}
+			}
+		}
+		
 		viewCount = validViewNames.size();
 		
 		// TODO: comment.
@@ -355,6 +380,23 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 		if (viewCount < pMinViews)
 			return false;
 		return true;
+	}
+	
+	@NotNull
+	ArrayList<? extends Annotation> getAnnotations(JCas viewCas, HashSet<TOP> fingerprinted, Class<? extends Annotation> annotationClass) {
+		ArrayList<? extends Annotation> annotations;
+		if (pFilterFingerprinted)
+			annotations = JCasUtil.select(viewCas, annotationClass).stream()
+					.filter((Predicate<TOP>) fingerprinted::contains)
+					.collect(Collectors.toCollection(ArrayList::new));
+		else
+			annotations = new ArrayList<>(JCasUtil.select(viewCas, annotationClass));
+		
+		// Create a set of annotations, that are overlapped by another annotation
+		HashSet<Annotation> overlappedAnnotations = getOverlappedAnnotations(viewCas, annotationClass, annotations);
+		// Remove annotations, that are overlapped by an annotation of the same Type
+		annotations.removeAll(overlappedAnnotations);
+		return annotations;
 	}
 	
 	@Override

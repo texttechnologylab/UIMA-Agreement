@@ -84,20 +84,10 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
 				
 				// Select all annotations of all given types and add an annotation unit for each item
 				for (Class<? extends Annotation> annotationClass : annotationClasses) {
-					ArrayList<? extends Annotation> annotations;
-					if (pFilterFingerprinted)
-						annotations = JCasUtil.select(viewCas, annotationClass).stream()
-								.filter((Predicate<TOP>) fingerprinted::contains)
-								.collect(Collectors.toCollection(ArrayList::new));
-					else
-						annotations = new ArrayList<>(JCasUtil.select(viewCas, annotationClass));
+					// Get all not overlapped annotations, filtering fingerprinted if parameter was set
+					ArrayList<? extends Annotation> annotations = getAnnotations(viewCas, fingerprinted, annotationClass);
 					
 					HashMap<? extends Annotation, Collection<Token>> annotationTokenLookup = Maps.newHashMap(indexCovering(viewCas, annotationClass, Token.class));
-					
-					// Create a set of annotations, that are overlapped by another annotation
-					HashSet<Annotation> overlappedAnnotations = getOverlappedAnnotations(viewCas, annotationClass, annotations);
-					// Remove annotations, that are overlapped by an annotation of the same Type
-					annotations.removeAll(overlappedAnnotations);
 					
 					for (Annotation annotation : annotations) {
 						LinkedHashSet<Token> containedTokens = Sets.newLinkedHashSet(JCasUtil.subiterate(viewCas, Token.class, annotation, true, true));
@@ -145,13 +135,6 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
 					}
 				}
 			}
-			
-			// Check PARAM_MIN_ANNOTATIONS constraint
-			long min = annotatorIndex.keySet().stream()
-					.map(perViewAnnotationCount::get)
-					.min(Long::compareTo).orElse(0L);
-			if (min < pMinAnnotations)
-				return;
 			
 			// Store the collected annotations units and update the document offset for final evaluation
 			annotationStudies.add(ImmutablePair.of(documentOffset.get(), perCasStudy.getUnits()));
@@ -232,6 +215,9 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
 	}
 	
 	private void handleCombined() {
+		if (annotationStudies.size() < 1 || annotatorIndex.size() < 1)
+			return;
+		
 		UnitizingAnnotationStudy completeStudy = new UnitizingAnnotationStudy(annotatorIndex.size(), documentOffset.get());
 		CountMap<String> categoryCount = new CountMap<>();
 		HashMap<String, CountMap<String>> annotatorCategoryCount = new HashMap<>();
