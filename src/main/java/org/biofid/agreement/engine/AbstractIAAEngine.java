@@ -15,6 +15,7 @@ import org.apache.uima.fit.descriptor.ConfigurationParameter;
 import org.apache.uima.fit.internal.ExtendedLogger;
 import org.apache.uima.fit.util.JCasUtil;
 import org.apache.uima.jcas.JCas;
+import org.apache.uima.jcas.cas.TOP;
 import org.apache.uima.jcas.tcas.Annotation;
 import org.apache.uima.resource.ResourceInitializationException;
 import org.biofid.utility.CountMap;
@@ -22,6 +23,7 @@ import org.dkpro.statistics.agreement.ICategorySpecificAgreement;
 import org.jetbrains.annotations.NotNull;
 import org.texttechnologielab.annotation.type.Fingerprint;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -29,6 +31,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -149,6 +152,22 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 	 */
 	public static final String BOTH = "BOTH";
 	
+	/**
+	 * The path where statistic files will be created, if {@link AbstractIAAEngine#PARAM_PRINT_STATS} is set 'true'.<br>
+	 * Will create one statistics file per input CAS if {@link AbstractIAAEngine#PARAM_MULTI_CAS_HANDLING} is
+	 * {@link AbstractIAAEngine#SEPARATE} or {@link AbstractIAAEngine#BOTH} and one file for the combined statistics if
+	 * {@link AbstractIAAEngine#PARAM_MULTI_CAS_HANDLING} is {@link AbstractIAAEngine#COMBINED} or
+	 * {@link AbstractIAAEngine#BOTH}.
+	 * <p/>
+	 * This can also be set to {@link System#out} or {@link System#err}, in which case no files will be created but the
+	 * output will be printed in the corresponding output stream.
+	 * <p/>
+	 * If the given path is an existing file, all statistics will then be appended to that file.
+	 * If {@link AbstractIAAEngine#PARAM_OVERWRITE_EXISTING} is set 'true', the file will be truncated to zero length
+	 * during the call of {@link AbstractIAAEngine#initialize}.
+	 * <p/>
+	 * If the given path does not exist, it will be created.
+	 */
 	public static final String PARAM_TARGET_LOCATION = ComponentParameters.PARAM_TARGET_LOCATION;
 	@ConfigurationParameter(
 			name = PARAM_TARGET_LOCATION,
@@ -156,9 +175,23 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 	)
 	private static String targetLocation;
 	
+	/**
+	 * Whether to overwrite existing files in the given target location.
+	 * If set false, statistics will be appended to existing files.
+	 * <p/>
+	 * Default: true.
+	 */
+	public static final String PARAM_OVERWRITE_EXISTING = "pOverwriteExisting";
+	@ConfigurationParameter(
+			name = PARAM_OVERWRITE_EXISTING,
+			defaultValue = "true"
+	)
+	private static Boolean pOverwriteExisting;
+	
 	protected ExtendedLogger logger;
 	long viewCount;
 	LinkedHashSet<String> validViewNames;
+	private BufferedWriter globalAppendable;
 	
 	@Override
 	public void initialize(UimaContext context) throws ResourceInitializationException {
@@ -184,13 +217,27 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 				annotationClasses = ImmutableSet.copyOf(classArrayList);
 		}
 		
-		// Set the list of excluded annotators
+		// Set the list of annotators
 		if (pAnnotatorList != null && pAnnotatorList.length > 0) {
 			listedAnnotators = ImmutableSet.copyOf(pAnnotatorList);
 		}
 		logger.info("Computing inter-annotator agreement for subclasses of " + annotationClasses.toString());
 		if (!listedAnnotators.isEmpty()) {
-			logger.info(String.format("%s annotators with ids: " + listedAnnotators.toString(), pRelation ? "Whitelisting" : "Blacklisting"));
+			logger.info(String.format("%s annotators with ids: %s", pRelation ? "Whitelisting" : "Blacklisting", listedAnnotators.toString()));
+		}
+		
+		// Check if the target path is an existing file and if it is, whether it should be overwritten.
+		try {
+			Path targetPath = Paths.get(targetLocation);
+			if (targetPath.toFile().exists() && targetPath.toFile().isFile()) {
+				if (pOverwriteExisting) {
+					globalAppendable = Files.newBufferedWriter(targetPath, StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+				} else {
+					globalAppendable = Files.newBufferedWriter(targetPath, StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.APPEND);
+				}
+			}
+		} catch (Exception e) {
+			throw new ResourceInitializationException(e);
 		}
 	}
 	
@@ -205,12 +252,21 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 				break;
 			default:
 				Path path = Paths.get(targetLocation);
-				if (path.toFile().exists() && path.toFile().isFile()) {
-					targetAppendable = Files.newBufferedWriter(Paths.get(path.getParent().toString(), suffix), StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
-				} else {
-					if (!path.toFile().exists())
-						Files.createDirectories(path);
-					targetAppendable = Files.newBufferedWriter(Paths.get(path.toString(), suffix), StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+				if (path.toFile().exists()) { // Path exists ..
+					if (path.toFile().isFile()) { // .. and is a file.
+						targetAppendable = globalAppendable;
+					} else { // .. and is a directory.
+						Path appendablePath = Paths.get(path.toString(), suffix);
+						if (!appendablePath.toFile().exists() || pOverwriteExisting) { // File does not exist or pOverwriteExisting is true.
+							targetAppendable = Files.newBufferedWriter(appendablePath, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+						} else { // File does exist and pOverwriteExisting is false.
+							targetAppendable = Files.newBufferedWriter(appendablePath, StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.APPEND);
+						}
+					}
+				} else { // Path does not exist.
+					Path appendablePath = Paths.get(path.toString(), suffix);
+					Files.createDirectories(path);
+					targetAppendable = Files.newBufferedWriter(appendablePath, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
 				}
 		}
 		return targetAppendable;

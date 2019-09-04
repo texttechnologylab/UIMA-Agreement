@@ -205,10 +205,14 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
 		
 		if (pPrintStatistics) {
 			try {
-				String documentTitle = DocumentMetaData.get(jCas).getDocumentTitle();
-				CSVPrinter csvPrinter = new CSVPrinter(getAppendable(documentTitle.replaceAll(".xmi", ".csv")), csvFormat);
+				String fileName = DocumentMetaData.get(jCas).getDocumentId();
+				fileName = fileName != null ? fileName : DocumentMetaData.get(jCas).getDocumentTitle();
+				fileName = fileName != null ? fileName : DocumentMetaData.get(jCas).getDocumentUri();
+				
+				fileName = StringUtils.appendIfMissing(StringUtils.removeEnd(fileName, ".xmi"), ".csv");
+				CSVPrinter csvPrinter = new CSVPrinter(getAppendable(fileName), csvFormat);
 				csvPrinter.printComment(String.format("KrippendorffAlphaUnitizingAgreement - %s",
-						documentTitle
+						fileName
 				));
 				csvPrinter.printComment(String.format("Inter-annotator agreement for %d annotators: %s",
 						annotatorIndex.size(), annotatorIndex.keySet().toString()

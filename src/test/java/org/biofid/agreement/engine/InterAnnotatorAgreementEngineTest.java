@@ -14,7 +14,6 @@ import org.texttechnologylab.annotation.NamedEntity;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
@@ -24,8 +23,6 @@ public class InterAnnotatorAgreementEngineTest {
 	@Test
 	public void testAnnotatorAgreement() {
 		try {
-			String[] annotatorWhitelist = {"305236", "305235"};
-			String[] annotatorBlacklist = {"0", "302904"};
 			final boolean download = false;
 			
 			String xmiPath = "src/test/out/xmi/";
@@ -41,27 +38,30 @@ public class InterAnnotatorAgreementEngineTest {
 						TextAnnotatorRepositoryCollectionReader.PARAM_TARGET_LOCATION, txtPath,
 						TextAnnotatorRepositoryCollectionReader.PARAM_SESSION_ID, sessionId,
 						TextAnnotatorRepositoryCollectionReader.PARAM_FORCE_RESERIALIZE, true
-						, XmiReader.PARAM_LOG_FREQ, -1
+//						, XmiReader.PARAM_LOG_FREQ, -1
 				);
 			} else {
 				collection = CollectionReaderFactory.createReader(
 						XmiReader.class,
 //					XmiReader.PARAM_PATTERNS, "[+]*.xmi",
-						XmiReader.PARAM_PATTERNS, "[+]3718079.xmi",
-						XmiReader.PARAM_SOURCE_LOCATION, xmiPath
-						, XmiReader.PARAM_LOG_FREQ, -1
+						XmiReader.PARAM_PATTERNS, "[+]*.xmi",
+						XmiReader.PARAM_SOURCE_LOCATION, xmiPath,
+						XmiReader.PARAM_LENIENT, true
+//						, XmiReader.PARAM_LOG_FREQ, -1
 				);
 			}
 			
 			AggregateBuilder ab = new AggregateBuilder();
 			
 			// Test parameters
+			String[] annotatorWhitelist = {"305236", "305235"};
+			String[] annotatorBlacklist = {"0", "302904"};
 			boolean filterFingerprinted = true;
 			String[] annotationClasses = {NamedEntity.class.getName(), AbstractNamedEntity.class.getName()};
 			
 			ab.add(AnalysisEngineFactory.createEngineDescription(
 					CsvPrinterEngine.class,
-					CsvPrinterEngine.PARAM_TARGET_LOCATION, "src/test/out/result.csv",
+					CsvPrinterEngine.PARAM_TARGET_LOCATION, "/resources/public/stoeckel/agreement/annotations.csv",
 					CsvPrinterEngine.PARAM_MIN_VIEWS, 2,
 //					CsvPrinterEngine.PARAM_ANNOTATOR_LIST, annotatorWhitelist,
 //					CsvPrinterEngine.PARAM_ANNOTATOR_RELATION, UnitizingIAACollectionProcessingEngine.WHITELIST,
@@ -70,7 +70,7 @@ public class InterAnnotatorAgreementEngineTest {
 					CsvPrinterEngine.PARAM_FILTER_FINGERPRINTED, filterFingerprinted
 			));
 			
-			String[] includeFlags = new String[]{TTLabUnitizingIAACollectionProcessingEngine.METAPHOR, TTLabUnitizingIAACollectionProcessingEngine.METONYM};
+			String[] includeFlags = new String[]{TTLabUnitizingIAACollectionProcessingEngine.METAPHOR, TTLabUnitizingIAACollectionProcessingEngine.METONYM, TTLabUnitizingIAACollectionProcessingEngine.SPECIFIC};
 			ab.add(AnalysisEngineFactory.createEngineDescription(
 					TTLabUnitizingIAACollectionProcessingEngine.class,
 					TTLabUnitizingIAACollectionProcessingEngine.PARAM_ANNOTATION_CLASSES, annotationClasses,
