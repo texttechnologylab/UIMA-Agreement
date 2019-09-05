@@ -25,7 +25,7 @@ import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.util.CasIOUtils;
 import org.apache.uima.util.Progress;
 import org.apache.uima.util.ProgressImpl;
-import org.hucompute.utilities.helper.RESTUtils;
+import org.texttechnologylab.utilities.helper.RESTUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONObject;

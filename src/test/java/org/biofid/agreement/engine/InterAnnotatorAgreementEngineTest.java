@@ -23,7 +23,7 @@ public class InterAnnotatorAgreementEngineTest {
 	@Test
 	public void testAnnotatorAgreement() {
 		try {
-			final boolean download = true;
+			final boolean download = false;
 			
 			String xmiPath = "src/test/out/xmi/";
 			CollectionReader collection;
@@ -70,39 +70,43 @@ public class InterAnnotatorAgreementEngineTest {
 					CsvPrinterEngine.PARAM_FILTER_FINGERPRINTED, filterFingerprinted
 			));
 			
-			String[] includeFlags = new String[]{TTLabUnitizingIAACollectionProcessingEngine.METAPHOR, TTLabUnitizingIAACollectionProcessingEngine.METONYM, TTLabUnitizingIAACollectionProcessingEngine.SPECIFIC};
+			String[] unitizingIncludeFlags = new String[]{TTLabUnitizingIAACollectionProcessingEngine.METAPHOR, TTLabUnitizingIAACollectionProcessingEngine.METONYM, TTLabUnitizingIAACollectionProcessingEngine.SPECIFIC};
 			ab.add(AnalysisEngineFactory.createEngineDescription(
 					TTLabUnitizingIAACollectionProcessingEngine.class,
 					TTLabUnitizingIAACollectionProcessingEngine.PARAM_ANNOTATION_CLASSES, annotationClasses,
-					TTLabUnitizingIAACollectionProcessingEngine.PARAM_INCLUDE_FLAGS, includeFlags,
+					TTLabUnitizingIAACollectionProcessingEngine.PARAM_INCLUDE_FLAGS, unitizingIncludeFlags,
 					TTLabUnitizingIAACollectionProcessingEngine.PARAM_MIN_VIEWS, 2,
-//					TTLabUnitizingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotatorWhitelist,
-//					TTLabUnitizingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, UnitizingIAACollectionProcessingEngine.WHITELIST,
-					TTLabUnitizingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotatorBlacklist,
-					TTLabUnitizingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, UnitizingIAACollectionProcessingEngine.BLACKLIST,
+					TTLabUnitizingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotatorWhitelist,
+					TTLabUnitizingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, UnitizingIAACollectionProcessingEngine.WHITELIST,
+//					TTLabUnitizingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotatorBlacklist,
+//					TTLabUnitizingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, UnitizingIAACollectionProcessingEngine.BLACKLIST,
 					TTLabUnitizingIAACollectionProcessingEngine.PARAM_FILTER_FINGERPRINTED, filterFingerprinted,
 					TTLabUnitizingIAACollectionProcessingEngine.PARAM_MULTI_CAS_HANDLING, TTLabUnitizingIAACollectionProcessingEngine.BOTH,
 					TTLabUnitizingIAACollectionProcessingEngine.PARAM_MIN_ANNOTATIONS, 10,
-					TTLabUnitizingIAACollectionProcessingEngine.PARAM_TARGET_LOCATION, "/resources/public/stoeckel/agreement/"
+					TTLabUnitizingIAACollectionProcessingEngine.PARAM_TARGET_LOCATION, "/resources/public/stoeckel/agreement/unitizing/"
 			));
-
-//			includeFlags = new String[]{TTLabCodingIAACollectionProcessingEngine.METAPHOR, TTLabCodingIAACollectionProcessingEngine.METONYM};
+			
+			String[] codingIncludeFlags = new String[]{TTLabCodingIAACollectionProcessingEngine.METAPHOR, TTLabCodingIAACollectionProcessingEngine.METONYM, TTLabCodingIAACollectionProcessingEngine.SPECIFIC};
+			ab.add(AnalysisEngineFactory.createEngineDescription(
+					TTLabCodingIAACollectionProcessingEngine.class,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATION_CLASSES, annotationClasses,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_INCLUDE_FLAGS, codingIncludeFlags,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_MIN_VIEWS, 2,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotatorWhitelist,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, TTLabCodingIAACollectionProcessingEngine.WHITELIST,
+//					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotatorBlacklist,
+//					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, UnitizingIAACollectionProcessingEngine.BLACKLIST,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_FILTER_FINGERPRINTED, filterFingerprinted,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_AGREEMENT_MEASURE, TTLabCodingIAACollectionProcessingEngine.KrippendorffAlphaAgreement,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_SET_SELECTION_STRATEGY, SetSelectionStrategy.MAX,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_MULTI_CAS_HANDLING, TTLabCodingIAACollectionProcessingEngine.BOTH,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_MIN_ANNOTATIONS, 10,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_TARGET_LOCATION, "/resources/public/stoeckel/agreement/coding/"
+			));
 //			ab.add(AnalysisEngineFactory.createEngineDescription(
 //					TTLabCodingIAACollectionProcessingEngine.class,
 //					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATION_CLASSES, annotationClasses,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_INCLUDE_FLAGS, includeFlags,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_MIN_VIEWS, 2,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotatorWhitelist,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, TTLabCodingIAACollectionProcessingEngine.WHITELIST,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_FILTER_FINGERPRINTED, filterFingerprinted,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_AGREEMENT_MEASURE, TTLabCodingIAACollectionProcessingEngine.KrippendorffAlphaAgreement,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_SET_SELECTION_STRATEGY, SetSelectionStrategy.MATCH,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_MULTI_CAS_HANDLING, TTLabCodingIAACollectionProcessingEngine.BOTH
-//			));
-//			ab.add(AnalysisEngineFactory.createEngineDescription(
-//					TTLabCodingIAACollectionProcessingEngine.class,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATION_CLASSES, annotationClasses,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_INCLUDE_FLAGS, includeFlags,
+//					TTLabCodingIAACollectionProcessingEngine.PARAM_INCLUDE_FLAGS, codingIncludeFlags,
 //					TTLabCodingIAACollectionProcessingEngine.PARAM_MIN_VIEWS, 2,
 //					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotatorWhitelist,
 //					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, TTLabCodingIAACollectionProcessingEngine.WHITELIST,
@@ -114,7 +118,7 @@ public class InterAnnotatorAgreementEngineTest {
 //			ab.add(AnalysisEngineFactory.createEngineDescription(
 //					TTLabCodingIAACollectionProcessingEngine.class,
 //					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATION_CLASSES, annotationClasses,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_INCLUDE_FLAGS, includeFlags,
+//					TTLabCodingIAACollectionProcessingEngine.PARAM_INCLUDE_FLAGS, codingIncludeFlags,
 //					TTLabCodingIAACollectionProcessingEngine.PARAM_MIN_VIEWS, 2,
 //					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotatorWhitelist,
 //					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, TTLabCodingIAACollectionProcessingEngine.WHITELIST,

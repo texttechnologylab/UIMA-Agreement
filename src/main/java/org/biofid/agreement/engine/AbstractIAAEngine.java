@@ -3,10 +3,12 @@ package org.biofid.agreement.engine;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Streams;
+import com.google.common.primitives.Doubles;
 import de.tudarmstadt.ukp.dkpro.core.api.parameter.ComponentParameters;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.uima.UimaContext;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CASException;
@@ -173,7 +175,7 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 			name = PARAM_TARGET_LOCATION,
 			defaultValue = "System.out"
 	)
-	private static String targetLocation;
+	private String targetLocation;
 	
 	/**
 	 * Whether to overwrite existing files in the given target location.
@@ -186,7 +188,7 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 			name = PARAM_OVERWRITE_EXISTING,
 			defaultValue = "true"
 	)
-	private static Boolean pOverwriteExisting;
+	private Boolean pOverwriteExisting;
 	
 	protected ExtendedLogger logger;
 	long viewCount;
@@ -249,7 +251,7 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 		}
 	}
 	
-	public CSVPrinter getCsvPrinter(@NotNull String suffix) throws IOException {
+	CSVPrinter getCsvPrinter(@NotNull String suffix) throws IOException {
 		Appendable targetAppendable;
 		switch (targetLocation) {
 			case "System.out":
@@ -293,16 +295,10 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 		return overlappedAnnotations;
 	}
 	
-	protected void printStudyResults(ICategorySpecificAgreement agreement, TreeSet<String> categories, Collection<String> annotators) {
-		for (String category : categories) {
-			System.out.printf("%s\t%f\n", category, agreement.calculateCategoryAgreement(category));
-		}
-		System.out.println();
-	}
-	
 	protected void printStudyResultsAndStatistics(ICategorySpecificAgreement agreement, CountMap<String> categoryCount, HashMap<String, CountMap<String>> annotatorCategoryCount, TreeSet<String> categories, Collection<String> annotators, CSVPrinter csvPrinter) throws IOException {
 		for (String category : categories) {
-			csvPrinter.printRecord(category, categoryCount.get(category), agreement.calculateCategoryAgreement(category));
+			double value = agreement.calculateCategoryAgreement(category);
+			csvPrinter.printRecord(category, categoryCount.get(category), Double.isNaN(value) ? 0.0 : value);
 		}
 		csvPrinter.println();
 		

@@ -48,7 +48,9 @@ public class TTLabCodingIAACollectionProcessingEngine extends CodingIAACollectio
 	public static final String PARAM_PRUNE_PREFIX = "pPrunePrefix";
 	@ConfigurationParameter(
 			name = PARAM_PRUNE_PREFIX,
-			defaultValue = "org.texttechnologylab.annotation.type."
+			mandatory = false,
+			defaultValue = ""
+//			defaultValue = "org.texttechnologylab.annotation.type."
 	)
 	private String pPrunePrefix;
 	

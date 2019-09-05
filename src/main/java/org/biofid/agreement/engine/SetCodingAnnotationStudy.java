@@ -59,13 +59,6 @@ public class SetCodingAnnotationStudy extends CodingAnnotationStudy {
 			case ALL:
 				cartesianProduct.forEach(item -> items.add(this.addItemAsArray(getAnnotations(item))));
 				return items.toArray(new ICodingAnnotationItem[0]);
-			case MAX:
-			default:
-				TreeSet<List<String>> treeSet = new TreeSet<>(sortByAgreement);
-				treeSet.addAll(cartesianProduct);
-				List<String> last = treeSet.last();
-				ICodingAnnotationItem maxAgreementItem = this.addItemAsArray(getAnnotations(last));
-				return new ICodingAnnotationItem[]{maxAgreementItem};
 			case MATCH:
 				ArrayList<HashSet<String>> annotationSets = new ArrayList<>();
 				HashSet<String> allAnnotations = Sets.newHashSet();
@@ -85,6 +78,13 @@ public class SetCodingAnnotationStudy extends CodingAnnotationStudy {
 					items.add(this.addItemAsArray(getAnnotations(item)));
 				}
 				return items.toArray(new ICodingAnnotationItem[0]);
+			case MAX:
+			default:
+				TreeSet<List<String>> treeSet = new TreeSet<>(sortByAgreement);
+				treeSet.addAll(cartesianProduct);
+				List<String> last = treeSet.last();
+				ICodingAnnotationItem maxAgreementItem = this.addItemAsArray(getAnnotations(last));
+				return new ICodingAnnotationItem[]{maxAgreementItem};
 		}
 	}
 	
