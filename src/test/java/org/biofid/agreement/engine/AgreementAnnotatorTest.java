@@ -8,6 +8,8 @@ import org.apache.uima.fit.factory.JCasFactory;
 import org.apache.uima.fit.pipeline.SimplePipeline;
 import org.apache.uima.fit.util.JCasUtil;
 import org.apache.uima.jcas.JCas;
+import org.apache.uima.jcas.cas.DoubleArray;
+import org.apache.uima.jcas.cas.LongArray;
 import org.apache.uima.jcas.cas.StringArray;
 import org.apache.uima.util.CasIOUtils;
 import org.junit.jupiter.api.Test;
@@ -58,13 +60,17 @@ public class AgreementAnnotatorTest {
 				JCas iaa = jCas.getView("IAA");
 				
 				AgreementContainer agreementContainer = Lists.newArrayList(JCasUtil.select(iaa, AgreementContainer.class)).get(0);
-				StringArray categorySpecificAgreementValues = agreementContainer.getCategorySpecificAgreementValues();
+				StringArray categoryNames = agreementContainer.getCategoryNames();
+				DoubleArray categoryAgreementValues = agreementContainer.getCategoryAgreementValues();
+				LongArray categoryCounts = agreementContainer.getCategoryCounts();
+				
 				System.out.println("Category\tAgreement");
 				System.out.printf("Overall\t%f\n", agreementContainer.getOverallAgreementValue());
-				for (int i = 0; i < categorySpecificAgreementValues.size(); i++) {
-					String category = categorySpecificAgreementValues.get(i);
-					String value = categorySpecificAgreementValues.get(++i);
-					System.out.printf("%s\t%f\n", category, Double.parseDouble(value));
+				for (int i = 0; i < categoryNames.size(); i++) {
+					String category = categoryNames.get(i);
+					Double value = categoryAgreementValues.get(i);
+					Long count = categoryCounts.get(i);
+					System.out.printf("%s\t%d\t%f\n", category, count, value);
 				}
 				System.out.println();
 				

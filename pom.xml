@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.hucompute.textimager.uima</groupId>
     <artifactId>biofid-agreement</artifactId>
-    <version>1.0.3-4</version>
+    <version>1.0.3-5</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -47,7 +47,7 @@
         <dependency>
             <groupId>com.github.texttechnologylab</groupId>
             <artifactId>UIMATypeSystem</artifactId>
-            <version>1.7.2</version>
+            <version>1.7.3</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.uima</groupId>

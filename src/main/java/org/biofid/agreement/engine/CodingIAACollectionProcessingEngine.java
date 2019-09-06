@@ -12,6 +12,8 @@ import org.apache.uima.cas.CASException;
 import org.apache.uima.fit.descriptor.ConfigurationParameter;
 import org.apache.uima.fit.util.JCasUtil;
 import org.apache.uima.jcas.JCas;
+import org.apache.uima.jcas.cas.DoubleArray;
+import org.apache.uima.jcas.cas.LongArray;
 import org.apache.uima.jcas.cas.StringArray;
 import org.apache.uima.jcas.cas.TOP;
 import org.apache.uima.jcas.tcas.Annotation;
@@ -353,12 +355,12 @@ public class CodingIAACollectionProcessingEngine extends AbstractIAAEngine {
 			if (!(agreement instanceof ICodingItemSpecificAgreement)) {
 				logger.error(String.format("The chosen agreement measure '%s' does not implement ICodingItemSpecificAgreement!", pAgreementMeasure));
 			} else {
-				createAgreementAnnotations(jCas, tokenItemLookup, agreement);
+				createAgreementAnnotations(jCas, tokenItemLookup, agreement, globalCategoryCount);
 			}
 		}
 	}
 	
-	private void createAgreementAnnotations(JCas jCas, LinkedHashMap<Integer, ICodingAnnotationItem[]> tokenItemLookup, IAgreementMeasure agreement) {
+	private void createAgreementAnnotations(JCas jCas, LinkedHashMap<Integer, ICodingAnnotationItem[]> tokenItemLookup, IAgreementMeasure agreement, CountMap<String> globalCategoryCount) {
 		try {
 			JCas viewIAA = JCasUtil.getView(jCas, "IAA", true);
 			if (viewIAA.getDocumentText() == null)
@@ -371,15 +373,19 @@ public class CodingIAACollectionProcessingEngine extends AbstractIAAEngine {
 			agreementContainer.setOverallAgreementValue(agreement.calculateAgreement());
 			
 			String[] categoryStrings = categories.toArray(new String[0]);
-			StringArray categoryValuePairs = new StringArray(viewIAA, categories.size() * 2);
+			StringArray categoryNamesStringArray = new StringArray(viewIAA, categories.size());
+			LongArray categoryCountsLongArray = new LongArray(viewIAA, categories.size());
+			DoubleArray categoryValuesDoubleArray = new DoubleArray(viewIAA, categories.size());
 			for (int i = 0; i < categoryStrings.length; i++) {
 				String category = categoryStrings[i];
 				double value = ((ICategorySpecificAgreement) agreement).calculateCategoryAgreement(category);
-				String categoryAgreement = String.format("%01.10f",  Double.isNaN(value) ? 0.0 : value);
-				categoryValuePairs.set(i * 2, category);
-				categoryValuePairs.set(i * 2 + 1, categoryAgreement);
+				categoryNamesStringArray.set(i, category);
+				categoryValuesDoubleArray.set(i, Double.isNaN(value) ? 0.0 : value);
+				categoryCountsLongArray.set(i, globalCategoryCount.getOrDefault(category, 0L));
 			}
-			agreementContainer.setCategorySpecificAgreementValues(categoryValuePairs);
+			agreementContainer.setCategoryNames(categoryNamesStringArray);
+			agreementContainer.setCategoryAgreementValues(categoryValuesDoubleArray);
+			agreementContainer.setCategoryCounts(categoryCountsLongArray);
 			viewIAA.addFsToIndexes(agreementContainer);
 			
 			// Iterate over all tokens that have an entry in
