@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset>
+    <ignoreVersions>
+        <ignoreVersion type="regex">.*[-_\.](a|alpha|Alpha|ALPHA|b|beta|Beta|BETA|rc|RC|M|EA|pr)[-_\.]?[0-9]?.*</ignoreVersion>
+    </ignoreVersions>
+</ruleset>

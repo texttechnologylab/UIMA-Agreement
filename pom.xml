@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.hucompute.textimager.uima</groupId>
     <artifactId>biofid-agreement</artifactId>
-    <version>1.0.3-5</version>
+    <version>1.0.4</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -19,6 +19,10 @@
                 <exclusion>
                     <artifactId>typesystem</artifactId>
                     <groupId>org.texttechnologylab.annotation</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -47,7 +51,7 @@
         <dependency>
             <groupId>com.github.texttechnologylab</groupId>
             <artifactId>UIMATypeSystem</artifactId>
-            <version>1.7.3</version>
+            <version>1.7.5</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.uima</groupId>
@@ -98,7 +102,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>27.0.1-jre</version>
+            <version>28.1-jre</version>
         </dependency>
         <dependency>
             <groupId>org.apache.opennlp</groupId>
@@ -130,6 +134,12 @@
             <groupId>com.github.texttechnologylab</groupId>
             <artifactId>Utilities</artifactId>
             <version>-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

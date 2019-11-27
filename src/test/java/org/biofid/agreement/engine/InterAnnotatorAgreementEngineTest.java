@@ -7,10 +7,10 @@ import org.apache.uima.fit.factory.AggregateBuilder;
 import org.apache.uima.fit.factory.AnalysisEngineFactory;
 import org.apache.uima.fit.factory.CollectionReaderFactory;
 import org.apache.uima.fit.pipeline.SimplePipeline;
-import org.biofid.agreement.reader.TextAnnotatorRepositoryCollectionReader;
 import org.junit.jupiter.api.Test;
 import org.texttechnologylab.annotation.AbstractNamedEntity;
 import org.texttechnologylab.annotation.NamedEntity;
+import org.texttechnologylab.utilities.uima.reader.TextAnnotatorRepositoryCollectionReader;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;

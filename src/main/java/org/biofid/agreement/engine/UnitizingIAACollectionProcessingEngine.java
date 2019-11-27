@@ -13,12 +13,12 @@ import org.apache.uima.fit.util.JCasUtil;
 import org.apache.uima.jcas.JCas;
 import org.apache.uima.jcas.cas.TOP;
 import org.apache.uima.jcas.tcas.Annotation;
-import org.biofid.utility.CountMap;
-import org.biofid.utility.IndexingMap;
 import org.dkpro.statistics.agreement.unitizing.IUnitizingAnnotationUnit;
 import org.dkpro.statistics.agreement.unitizing.KrippendorffAlphaUnitizingAgreement;
 import org.dkpro.statistics.agreement.unitizing.UnitizingAnnotationStudy;
 import org.texttechnologielab.annotation.type.Fingerprint;
+import org.texttechnologylab.utilities.collections.CountMap;
+import org.texttechnologylab.utilities.collections.IndexingMap;
 
 import java.io.IOException;
 import java.util.*;

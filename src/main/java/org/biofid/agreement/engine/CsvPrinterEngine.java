@@ -19,10 +19,10 @@ import org.apache.uima.jcas.JCas;
 import org.apache.uima.jcas.cas.TOP;
 import org.apache.uima.jcas.tcas.Annotation;
 import org.apache.uima.resource.ResourceInitializationException;
-import org.biofid.utility.IndexingMap;
 import org.texttechnologielab.annotation.type.Fingerprint;
 import org.texttechnologylab.annotation.AbstractNamedEntity;
 import org.texttechnologylab.annotation.NamedEntity;
+import org.texttechnologylab.utilities.collections.IndexingMap;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

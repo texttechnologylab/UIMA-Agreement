@@ -18,8 +18,6 @@ import org.apache.uima.jcas.cas.StringArray;
 import org.apache.uima.jcas.cas.TOP;
 import org.apache.uima.jcas.tcas.Annotation;
 import org.apache.uima.resource.ResourceInitializationException;
-import org.biofid.utility.CountMap;
-import org.biofid.utility.IndexingMap;
 import org.dkpro.statistics.agreement.IAgreementMeasure;
 import org.dkpro.statistics.agreement.ICategorySpecificAgreement;
 import org.dkpro.statistics.agreement.coding.*;
@@ -27,6 +25,8 @@ import org.dkpro.statistics.agreement.distance.NominalDistanceFunction;
 import org.texttechnologielab.annotation.type.Fingerprint;
 import org.texttechnologylab.iaa.Agreement;
 import org.texttechnologylab.iaa.AgreementContainer;
+import org.texttechnologylab.utilities.collections.CountMap;
+import org.texttechnologylab.utilities.collections.IndexingMap;
 
 import java.io.IOException;
 import java.util.*;
@@ -496,19 +496,19 @@ public class CodingIAACollectionProcessingEngine extends AbstractIAAEngine {
 		// Choose the agreement measure method
 		IAgreementMeasure agreement;
 		switch (pAgreementMeasure) {
-			case "CohenKappaAgreement":
+			case CohenKappaAgreement:
 				if (codingAnnotationStudy.getRaterCount() != 2) {
 					throw new UnsupportedOperationException(String.format("CohenKappaAgreement only supports exactly 2 annotators, not %d!", codingAnnotationStudy.getRaterCount()));
 				}
 				agreement = new CohenKappaAgreement(codingAnnotationStudy);
 				break;
-			case "FleissKappaAgreement":
+			case FleissKappaAgreement:
 				agreement = new FleissKappaAgreement(codingAnnotationStudy);
 				break;
-			case "PercentageAgreement":
+			case PercentageAgreement:
 				agreement = new PercentageAgreement(codingAnnotationStudy);
 				break;
-			case "KrippendorffAlphaAgreement":
+			case KrippendorffAlphaAgreement:
 			default:
 				agreement = new KrippendorffAlphaAgreement(codingAnnotationStudy, new NominalDistanceFunction());
 				break;
