@@ -12,9 +12,6 @@ import org.apache.uima.cas.CASException;
 import org.apache.uima.fit.descriptor.ConfigurationParameter;
 import org.apache.uima.fit.util.JCasUtil;
 import org.apache.uima.jcas.JCas;
-import org.apache.uima.jcas.cas.DoubleArray;
-import org.apache.uima.jcas.cas.LongArray;
-import org.apache.uima.jcas.cas.StringArray;
 import org.apache.uima.jcas.cas.TOP;
 import org.apache.uima.jcas.tcas.Annotation;
 import org.apache.uima.resource.ResourceInitializationException;
@@ -22,6 +19,7 @@ import org.dkpro.statistics.agreement.IAgreementMeasure;
 import org.dkpro.statistics.agreement.ICategorySpecificAgreement;
 import org.dkpro.statistics.agreement.coding.*;
 import org.dkpro.statistics.agreement.distance.NominalDistanceFunction;
+import org.jetbrains.annotations.NotNull;
 import org.texttechnologielab.annotation.type.Fingerprint;
 import org.texttechnologylab.iaa.Agreement;
 import org.texttechnologylab.iaa.AgreementContainer;
@@ -83,13 +81,13 @@ public class CodingIAACollectionProcessingEngine extends AbstractIAAEngine {
 	 * <li>{@link CodingIAACollectionProcessingEngine#PercentageAgreement CodingInterAnnotatorAgreementEngine.PercentageAgreement}
 	 * </ul>
 	 */
-	public static final String PARAM_ANNOTATE = "pAnnotate";
+	public static final String PARAM_ANNOTATE_TOKEN = "pAnnotateToken";
 	@ConfigurationParameter(
-			name = PARAM_ANNOTATE,
+			name = PARAM_ANNOTATE_TOKEN,
 			defaultValue = "false",
 			description = "Set true to enable token-level inter-annotator agreement annotation"
 	)
-	Boolean pAnnotate;
+	Boolean pAnnotateToken;
 	
 	// Agreement measure choices
 	/**
@@ -148,7 +146,7 @@ public class CodingIAACollectionProcessingEngine extends AbstractIAAEngine {
 	@Override
 	public void initialize(UimaContext context) throws ResourceInitializationException {
 		super.initialize(context);
-		if (pAnnotate && !(ImmutableSet.of(KrippendorffAlphaAgreement, PercentageAgreement).contains(pAgreementMeasure))) {
+		if (pAnnotateToken && !(ImmutableSet.of(KrippendorffAlphaAgreement, PercentageAgreement).contains(pAgreementMeasure))) {
 			throw new ResourceInitializationException(new UnsupportedOperationException(
 					"PARAM_ANNOTATE is set 'true', but the chosen PARAM_AGREEMENT_MEASURE does not implement ICodingItemSpecificAgreement!"
 			));
@@ -351,49 +349,30 @@ public class CodingIAACollectionProcessingEngine extends AbstractIAAEngine {
 		}
 		
 		// If set, create per token annotations in the given JCas
-		if (pAnnotate) {
-			if (!(agreement instanceof ICodingItemSpecificAgreement)) {
-				logger.error(String.format("The chosen agreement measure '%s' does not implement ICodingItemSpecificAgreement!", pAgreementMeasure));
-			} else {
-				createAgreementAnnotations(jCas, tokenItemLookup, agreement, globalCategoryCount);
+		if (pAnnotateDocument || pAnnotateToken) {
+			JCas viewIAA = initializeIaaView(jCas);
+			
+			if (pAnnotateDocument) {
+				createDocumentAgreementAnnotations(viewIAA, agreement, pAgreementMeasure, categories, globalCategoryCount);
+			}
+			if (pAnnotateToken) {
+				if (!(agreement instanceof ICodingItemSpecificAgreement)) {
+					logger.error(String.format("The chosen agreement measure '%s' does not implement ICodingItemSpecificAgreement!", pAgreementMeasure));
+				} else {
+					createAgreementAnnotations(jCas, viewIAA, tokenItemLookup, agreement, globalCategoryCount);
+				}
 			}
 		}
 	}
 	
-	private void createAgreementAnnotations(JCas jCas, LinkedHashMap<Integer, ICodingAnnotationItem[]> tokenItemLookup, IAgreementMeasure agreement, CountMap<String> globalCategoryCount) {
+	private void createAgreementAnnotations(JCas jCas, JCas viewIAA, LinkedHashMap<Integer, ICodingAnnotationItem[]> tokenItemLookup, IAgreementMeasure agreement, CountMap<String> globalCategoryCount) {
 		try {
-			JCas viewIAA = JCasUtil.getView(jCas, "IAA", true);
-			if (viewIAA.getDocumentText() == null)
-				viewIAA.setDocumentText(jCas.getDocumentText());
-			viewIAA.removeAllIncludingSubtypes(Agreement.type);
-			viewIAA.removeAllIncludingSubtypes(AgreementContainer.type);
-			
-			AgreementContainer agreementContainer = new AgreementContainer(viewIAA);
-			agreementContainer.setAgreementMeasure(pAgreementMeasure);
-			agreementContainer.setOverallAgreementValue(agreement.calculateAgreement());
-			
-			String[] categoryStrings = categories.toArray(new String[0]);
-			StringArray categoryNamesStringArray = new StringArray(viewIAA, categories.size());
-			LongArray categoryCountsLongArray = new LongArray(viewIAA, categories.size());
-			DoubleArray categoryValuesDoubleArray = new DoubleArray(viewIAA, categories.size());
-			for (int i = 0; i < categoryStrings.length; i++) {
-				String category = categoryStrings[i];
-				double value = ((ICategorySpecificAgreement) agreement).calculateCategoryAgreement(category);
-				categoryNamesStringArray.set(i, category);
-				categoryValuesDoubleArray.set(i, Double.isNaN(value) ? 0.0 : value);
-				categoryCountsLongArray.set(i, globalCategoryCount.getOrDefault(category, 0L));
-			}
-			agreementContainer.setCategoryNames(categoryNamesStringArray);
-			agreementContainer.setCategoryAgreementValues(categoryValuesDoubleArray);
-			agreementContainer.setCategoryCounts(categoryCountsLongArray);
-			viewIAA.addFsToIndexes(agreementContainer);
-			
 			// Iterate over all tokens that have an entry in
 			LinkedList<Token> tokens = Lists.newLinkedList(JCasUtil.select(jCas, Token.class));
 			for (Integer tokenIndex : tokenItemLookup.keySet()) {
 				Token token = tokens.get(tokenIndex);
 				ICodingAnnotationItem[] iCodingAnnotationItems = tokenItemLookup.get(tokenIndex);
-				Double itemAgreementValue = Arrays.stream(iCodingAnnotationItems)
+				double itemAgreementValue = Arrays.stream(iCodingAnnotationItems)
 						.map(((ICodingItemSpecificAgreement) agreement)::calculateItemAgreement)
 						.reduce(Double::sum)
 						.orElse(0.0);

@@ -17,8 +17,8 @@ import org.dkpro.statistics.agreement.coding.PercentageAgreement;
  * <p/>
  * Convenience class for separate CAS annotation with empty {@link org.apache.uima.analysis_engine.AnalysisEngine#collectionProcessComplete collectionProcessComplete()}.
  * <br>
- * {@link AgreementAnnotatorEngine#PARAM_MULTI_CAS_HANDLING PARAM_MULTI_CAS_HANDLING} is fixed to {@link AgreementAnnotatorEngine#SEPARATE SEPARATE} and
- * {@link AgreementAnnotatorEngine#PARAM_ANNOTATE PARAM_ANNOTATE} is fixed to 'true'.
+ * {@link CodingAgreementAnnotatorEngine#PARAM_MULTI_CAS_HANDLING PARAM_MULTI_CAS_HANDLING} is fixed to {@link CodingAgreementAnnotatorEngine#SEPARATE SEPARATE} and
+ * {@link CodingAgreementAnnotatorEngine#PARAM_ANNOTATE_TOKEN PARAM_ANNOTATE} is fixed to 'true'.
  * <p/>
  * <b>IMPORTANT:</b>
  * Requires chosen agreement measure to implement interface {@link ICodingItemSpecificAgreement}!
@@ -37,13 +37,14 @@ import org.dkpro.statistics.agreement.coding.PercentageAgreement;
 @Parameters(
 		exclude = {
 				CodingIAACollectionProcessingEngine.PARAM_MULTI_CAS_HANDLING,
-				CodingIAACollectionProcessingEngine.PARAM_ANNOTATE
+				CodingIAACollectionProcessingEngine.PARAM_ANNOTATE_TOKEN
 		})
-public class AgreementAnnotatorEngine extends CodingIAACollectionProcessingEngine {
+public class CodingAgreementAnnotatorEngine extends CodingIAACollectionProcessingEngine {
 	@Override
 	public void initialize(UimaContext context) throws ResourceInitializationException {
 		super.initialize(context);
-		pAnnotate = true;
+		pAnnotateToken = true;
+		pAnnotateDocument = true;
 		pMultiCasHandling = SEPARATE;
 		if (!(ImmutableSet.of(KrippendorffAlphaAgreement, PercentageAgreement).contains(pAgreementMeasure))) {
 			throw new ResourceInitializationException(new UnsupportedOperationException(
