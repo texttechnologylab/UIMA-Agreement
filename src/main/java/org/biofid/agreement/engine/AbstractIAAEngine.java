@@ -15,12 +15,18 @@ import org.apache.uima.fit.descriptor.ConfigurationParameter;
 import org.apache.uima.fit.internal.ExtendedLogger;
 import org.apache.uima.fit.util.JCasUtil;
 import org.apache.uima.jcas.JCas;
+import org.apache.uima.jcas.cas.DoubleArray;
+import org.apache.uima.jcas.cas.LongArray;
+import org.apache.uima.jcas.cas.StringArray;
 import org.apache.uima.jcas.cas.TOP;
 import org.apache.uima.jcas.tcas.Annotation;
 import org.apache.uima.resource.ResourceInitializationException;
+import org.dkpro.statistics.agreement.IAgreementMeasure;
 import org.dkpro.statistics.agreement.ICategorySpecificAgreement;
 import org.jetbrains.annotations.NotNull;
 import org.texttechnologielab.annotation.type.Fingerprint;
+import org.texttechnologylab.iaa.Agreement;
+import org.texttechnologylab.iaa.AgreementContainer;
 import org.texttechnologylab.utilities.collections.CountMap;
 
 import java.io.BufferedWriter;
@@ -187,6 +193,13 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 			defaultValue = "true"
 	)
 	private Boolean pOverwriteExisting;
+	
+	public static final String PARAM_ANNOTATE_DOCUMENT = "pAnnotateDocument";
+	@ConfigurationParameter(name = PARAM_ANNOTATE_DOCUMENT, defaultValue = "true", mandatory = false,
+			description = "Set false to disable document level IAA annotations. Default value: true. Has no effect when " +
+					"PARAM_MULTI_CAS_HANDLING is set to 'COMBINED'."
+	)
+	Boolean pAnnotateDocument;
 	
 	protected ExtendedLogger logger;
 	long viewCount;
@@ -410,5 +423,40 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	@NotNull
+	protected JCas createDocumentAgreementAnnotations(JCas viewIAA, IAgreementMeasure agreement, String pAgreementMeasure, Set<String> categories, CountMap<String> globalCategoryCount) {
+		AgreementContainer agreementContainer = new AgreementContainer(viewIAA);
+		agreementContainer.setAgreementMeasure(pAgreementMeasure);
+		agreementContainer.setOverallAgreementValue(agreement.calculateAgreement());
+		
+		String[] categoryStrings = categories.toArray(new String[0]);
+		StringArray categoryNamesStringArray = new StringArray(viewIAA, categories.size());
+		LongArray categoryCountsLongArray = new LongArray(viewIAA, categories.size());
+		DoubleArray categoryValuesDoubleArray = new DoubleArray(viewIAA, categories.size());
+		for (int i = 0; i < categoryStrings.length; i++) {
+			String category = categoryStrings[i];
+			double value = ((ICategorySpecificAgreement) agreement).calculateCategoryAgreement(category);
+			categoryNamesStringArray.set(i, category);
+			categoryValuesDoubleArray.set(i, Double.isNaN(value) ? 0.0 : value);
+			categoryCountsLongArray.set(i, globalCategoryCount.getOrDefault(category, 0L));
+		}
+		agreementContainer.setCategoryNames(categoryNamesStringArray);
+		agreementContainer.setCategoryAgreementValues(categoryValuesDoubleArray);
+		agreementContainer.setCategoryCounts(categoryCountsLongArray);
+		viewIAA.addFsToIndexes(agreementContainer);
+		
+		return viewIAA;
+	}
+	
+	@NotNull
+	protected JCas initializeIaaView(JCas jCas) {
+		JCas viewIAA = JCasUtil.getView(jCas, "IAA", true);
+		if (viewIAA.getDocumentText() == null)
+			viewIAA.setDocumentText(jCas.getDocumentText());
+		viewIAA.removeAllIncludingSubtypes(Agreement.type);
+		viewIAA.removeAllIncludingSubtypes(AgreementContainer.type);
+		return viewIAA;
 	}
 }

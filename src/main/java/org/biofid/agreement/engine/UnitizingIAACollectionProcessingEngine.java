@@ -168,6 +168,9 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
 	}
 	
 	private void handleSeparate(JCas jCas, UnitizingAnnotationStudy completeStudy) {
+		if (!pPrintStatistics && ! pAnnotateDocument)
+			return;
+		
 		// Iterate over all previously collected studies
 		CountMap<String> categoryCount = new CountMap<>();
 		HashMap<String, CountMap<String>> annotatorCategoryCount = new HashMap<>();
@@ -186,6 +189,8 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
 			annotatorCategoryCount.get(annotatorIndex.getKey(id)).inc(category);
 		}
 		
+		KrippendorffAlphaUnitizingAgreement agreement = new KrippendorffAlphaUnitizingAgreement(completeStudy);
+		
 		if (pPrintStatistics) {
 			try {
 				String documentId = DocumentMetaData.get(jCas).getDocumentId();
@@ -201,7 +206,6 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
 						annotatorIndex.size(), annotatorIndex.keySet().toString()
 				));
 				
-				KrippendorffAlphaUnitizingAgreement agreement = new KrippendorffAlphaUnitizingAgreement(completeStudy);
 				// Print the agreement for all categories
 				csvPrinter.printRecord("Category", "Count", "Agreement");
 				csvPrinter.printRecord("Overall", completeStudy.getUnitCount(), agreement.calculateAgreement());
@@ -210,6 +214,11 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		}
+		
+		if (pAnnotateDocument) {
+			JCas viewIAA = initializeIaaView(jCas);
+			createDocumentAgreementAnnotations(viewIAA, agreement, "KrippendorffAlphaUnitizingAgreement", categories, categoryCount);
 		}
 	}
 	
