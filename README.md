@@ -33,6 +33,15 @@ For coding studies each annotation span is split by the covered tokens. There ar
 The unitizing study approach does not suffer from problems with overlapping or nested annotations by design.
 The only condition is, that for annotation _B_ nested inside another annotation _A_, _B_ may not be of the same category as _A_.
 
+### Annotation
+The engines offer different capabilities for creating annotations containing the agreement scores. In either way, the annotations will be created in a special `IAA` view, separate from other annotations.
+
+#### Token-level Annotations
+The coding engines can create an agreement score per token if `PARAM_ANNOTATE_TOKEN` is set `true`.
+
+#### Document-level Annotations
+Both coding and unitizing engines can create an agreement annotation over an entire document if `PARAM_ANNOTATE_DOCUMENT` is set `true`.
+
 
 ## References
 > Christian M. Meyer, Margot Mieskes, Christian Stab, and Iryna Gurevych: DKPro Agreement: An Open-Source Java Library for Measuring Inter-Rater Agreement, in: _Proceedings of the 25th International Conference on Computational Linguistics (COLING)_, pp. 105–109, August 2014. Dublin, Ireland. ([download](https://www.ukp.tu-darmstadt.de/publications/details/?no_cache=1&tx_bibtex_pi1%5Bpub_id%5D=TUD-CS-2014-0863))
