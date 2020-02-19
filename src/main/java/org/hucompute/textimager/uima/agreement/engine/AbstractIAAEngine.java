@@ -238,27 +238,29 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 		if (!listedAnnotators.isEmpty()) {
 			logger.info(String.format("%s annotators with ids: %s", pRelation ? "Whitelisting" : "Blacklisting", listedAnnotators.toString()));
 		}
-		
-		
-		try {
-			Path targetPath = Paths.get(targetLocation);
-			if (targetPath.toFile().exists() && targetPath.toFile().isFile()) { // Check if the target path is an existing file and if it is, whether it should be overwritten.
-				if (pOverwriteExisting) {
-					BufferedWriter bufferedWriter = Files.newBufferedWriter(targetPath, StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+
+
+		if (!Arrays.asList("System.out", "System.err").contains(targetLocation)) {
+			try {
+				Path targetPath = Paths.get(targetLocation);
+				if (targetPath.toFile().exists() && targetPath.toFile().isFile()) { // Check if the target path is an existing file and if it is, whether it should be overwritten.
+					if (pOverwriteExisting) {
+						BufferedWriter bufferedWriter = Files.newBufferedWriter(targetPath, StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+						globalCsvPrinter = new CSVPrinter(bufferedWriter, csvFormat);
+					} else {
+						BufferedWriter bufferedWriter = Files.newBufferedWriter(targetPath, StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.APPEND);
+						globalCsvPrinter = new CSVPrinter(bufferedWriter, csvFormat);
+					}
+				} else if (!targetPath.toFile().exists() && targetPath.toString().endsWith(".csv")) { // Check if the target path denotes a file
+					Files.createDirectories(targetPath.getParent());
+					BufferedWriter bufferedWriter = Files.newBufferedWriter(targetPath, StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
 					globalCsvPrinter = new CSVPrinter(bufferedWriter, csvFormat);
-				} else {
-					BufferedWriter bufferedWriter = Files.newBufferedWriter(targetPath, StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.APPEND);
-					globalCsvPrinter = new CSVPrinter(bufferedWriter, csvFormat);
+				} else if (!targetPath.toFile().exists()) { // If it does denote a directory, create it if it does not exist
+					Files.createDirectories(targetPath);
 				}
-			} else if (!targetPath.toFile().exists() && targetPath.toString().endsWith(".csv")) { // Check if the target path denotes a file
-				Files.createDirectories(targetPath.getParent());
-				BufferedWriter bufferedWriter = Files.newBufferedWriter(targetPath, StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
-				globalCsvPrinter = new CSVPrinter(bufferedWriter, csvFormat);
-			} else if (!targetPath.toFile().exists()) { // If it does denote a directory, create it if it does not exist
-				Files.createDirectories(targetPath);
+			} catch (Exception e) {
+				throw new ResourceInitializationException(e);
 			}
-		} catch (Exception e) {
-			throw new ResourceInitializationException(e);
 		}
 	}
 	
