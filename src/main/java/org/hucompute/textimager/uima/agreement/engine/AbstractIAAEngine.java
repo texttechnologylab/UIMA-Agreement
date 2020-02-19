@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  * Abstract base class for all inter-annotator agreement engines.
  */
 public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
-	
+
 	/**
 	 * An array of fully qualified names of classes, that extend {@link Annotation},
 	 * which are to be considered in the agreement computation.
@@ -55,7 +55,7 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 	@ConfigurationParameter(name = PARAM_ANNOTATION_CLASSES, mandatory = false)
 	private String[] pAnnotationClasses;
 	ImmutableSet<Class<? extends Annotation>> annotationClasses = ImmutableSet.of(Annotation.class);
-	
+
 	/**
 	 * Defines the relation of the given annotators:
 	 * <ul>
@@ -73,12 +73,12 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 	Boolean pRelation;
 	public static final Boolean WHITELIST = true;
 	public static final Boolean BLACKLIST = false;
-	
+
 	public static final String PARAM_ANNOTATOR_LIST = "pAnnotatorList";
 	@ConfigurationParameter(name = PARAM_ANNOTATOR_LIST, mandatory = false)
 	private String[] pAnnotatorList;
 	ImmutableSet<String> listedAnnotators = ImmutableSet.of();
-	
+
 	/**
 	 * The minimal number of views in each CAS.
 	 */
@@ -89,7 +89,7 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 			defaultValue = "2"
 	)
 	protected Integer pMinViews;
-	
+
 	/**
 	 * The minimal number of eligible annotations in each view. Set to -1 to disable the constraint.
 	 * <p/>
@@ -102,7 +102,7 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 			defaultValue = "10"
 	)
 	protected Integer pMinAnnotations;
-	
+
 	/**
 	 * If true, only consider annotations coverd by a {@link Fingerprint}.
 	 */
@@ -112,7 +112,7 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 			defaultValue = "true"
 	)
 	protected Boolean pFilterFingerprinted;
-	
+
 	/**
 	 * If true, print agreement and annotation statistics.
 	 * <br>
@@ -125,7 +125,7 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 			defaultValue = "true"
 	)
 	Boolean pPrintStatistics;
-	
+
 	/**
 	 * Possible aggregation methods for the calculation of the inter-annotator agreement values:
 	 * <ul>
@@ -141,23 +141,23 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 			defaultValue = COMBINED
 	)
 	String pMultiCasHandling;
-	
+
 	/**
 	 * {@link AbstractIAAEngine#PARAM_MULTI_CAS_HANDLING} choice. Process each of the CAS separately and output their
 	 * inter-annotator agreement.
 	 */
 	public static final String SEPARATE = "SEPARATE";
-	
+
 	/**
 	 * {@link AbstractIAAEngine#PARAM_MULTI_CAS_HANDLING} choice. Collect all annotations from each cas in a single study.
 	 */
 	public static final String COMBINED = "COMBINED";
-	
+
 	/**
 	 * {@link AbstractIAAEngine#PARAM_MULTI_CAS_HANDLING} choice. Process each and collect them into a single study afterwards.
 	 */
 	public static final String BOTH = "BOTH";
-	
+
 	/**
 	 * The path where statistic files will be created, if {@link AbstractIAAEngine#PARAM_PRINT_STATS} is set 'true'.<br>
 	 * Will create one statistics file per input CAS if {@link AbstractIAAEngine#PARAM_MULTI_CAS_HANDLING} is
@@ -180,7 +180,7 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 			defaultValue = "System.out"
 	)
 	private String targetLocation;
-	
+
 	/**
 	 * Whether to overwrite existing files in the given target location.
 	 * If set false, statistics will be appended to existing files.
@@ -193,25 +193,25 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 			defaultValue = "true"
 	)
 	private Boolean pOverwriteExisting;
-	
+
 	public static final String PARAM_ANNOTATE_DOCUMENT = "pAnnotateDocument";
 	@ConfigurationParameter(name = PARAM_ANNOTATE_DOCUMENT, defaultValue = "true", mandatory = false,
 			description = "Set false to disable document level IAA annotations. Default value: true. Has no effect when " +
 					"PARAM_MULTI_CAS_HANDLING is set to 'COMBINED'."
 	)
 	Boolean pAnnotateDocument;
-	
+
 	protected ExtendedLogger logger;
 	long viewCount;
 	LinkedHashSet<String> validViewNames;
 	private CSVPrinter globalCsvPrinter;
-	
+
 	@Override
 	public void initialize(UimaContext context) throws ResourceInitializationException {
 		super.initialize(context);
 		logger = getLogger();
 		ArrayList<Class<? extends Annotation>> classArrayList = new ArrayList<>();
-		
+
 		// If class names were passed as parameters, update the annotationClasses set
 		if (pAnnotationClasses != null && pAnnotationClasses.length > 0) {
 			for (String pAnnotationClass : pAnnotationClasses) {
@@ -229,7 +229,7 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 			if (classArrayList.size() > 0)
 				annotationClasses = ImmutableSet.copyOf(classArrayList);
 		}
-		
+
 		// Set the list of annotators
 		if (pAnnotatorList != null && pAnnotatorList.length > 0) {
 			listedAnnotators = ImmutableSet.copyOf(pAnnotatorList);
@@ -238,30 +238,32 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 		if (!listedAnnotators.isEmpty()) {
 			logger.info(String.format("%s annotators with ids: %s", pRelation ? "Whitelisting" : "Blacklisting", listedAnnotators.toString()));
 		}
-		
-		
-		try {
-			Path targetPath = Paths.get(targetLocation);
-			if (targetPath.toFile().exists() && targetPath.toFile().isFile()) { // Check if the target path is an existing file and if it is, whether it should be overwritten.
-				if (pOverwriteExisting) {
-					BufferedWriter bufferedWriter = Files.newBufferedWriter(targetPath, StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+
+
+		if (!Arrays.asList("System.out", "System.err").contains(targetLocation)) {
+			try {
+				Path targetPath = Paths.get(targetLocation);
+				if (targetPath.toFile().exists() && targetPath.toFile().isFile()) { // Check if the target path is an existing file and if it is, whether it should be overwritten.
+					if (pOverwriteExisting) {
+						BufferedWriter bufferedWriter = Files.newBufferedWriter(targetPath, StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+						globalCsvPrinter = new CSVPrinter(bufferedWriter, csvFormat);
+					} else {
+						BufferedWriter bufferedWriter = Files.newBufferedWriter(targetPath, StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.APPEND);
+						globalCsvPrinter = new CSVPrinter(bufferedWriter, csvFormat);
+					}
+				} else if (!targetPath.toFile().exists() && targetPath.toString().endsWith(".csv")) { // Check if the target path denotes a file
+					Files.createDirectories(targetPath.getParent());
+					BufferedWriter bufferedWriter = Files.newBufferedWriter(targetPath, StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
 					globalCsvPrinter = new CSVPrinter(bufferedWriter, csvFormat);
-				} else {
-					BufferedWriter bufferedWriter = Files.newBufferedWriter(targetPath, StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.APPEND);
-					globalCsvPrinter = new CSVPrinter(bufferedWriter, csvFormat);
+				} else if (!targetPath.toFile().exists()) { // If it does denote a directory, create it if it does not exist
+					Files.createDirectories(targetPath);
 				}
-			} else if (!targetPath.toFile().exists() && targetPath.toString().endsWith(".csv")) { // Check if the target path denotes a file
-				Files.createDirectories(targetPath.getParent());
-				BufferedWriter bufferedWriter = Files.newBufferedWriter(targetPath, StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
-				globalCsvPrinter = new CSVPrinter(bufferedWriter, csvFormat);
-			} else if (!targetPath.toFile().exists()) { // If it does denote a directory, create it if it does not exist
-				Files.createDirectories(targetPath);
+			} catch (Exception e) {
+				throw new ResourceInitializationException(e);
 			}
-		} catch (Exception e) {
-			throw new ResourceInitializationException(e);
 		}
 	}
-	
+
 	CSVPrinter getCsvPrinter(@Nonnull String suffix) throws IOException {
 		Appendable targetAppendable;
 		switch (targetLocation) {
@@ -274,7 +276,7 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 			default:
 				// If initialize created global printer, return it
 				if (globalCsvPrinter != null) return globalCsvPrinter;
-				
+
 				Path path = Paths.get(targetLocation);
 				Path appendablePath = Paths.get(path.toString(), suffix);
 				if (!appendablePath.toFile().exists() || pOverwriteExisting) { // File does not exist or pOverwriteExisting is true.
@@ -285,7 +287,7 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 		}
 		return new CSVPrinter(targetAppendable, csvFormat);
 	}
-	
+
 	/**
 	 * Create a set of annotations, that are overlapped by another annotation
 	 *
@@ -305,18 +307,18 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 		}
 		return overlappedAnnotations;
 	}
-	
+
 	protected void printStudyResultsAndStatistics(ICategorySpecificAgreement agreement, CountMap<String> categoryCount, HashMap<String, CountMap<String>> annotatorCategoryCount, TreeSet<String> categories, Collection<String> annotators, CSVPrinter csvPrinter) throws IOException {
 		for (String category : categories) {
 			double value = agreement.calculateCategoryAgreement(category);
 			csvPrinter.printRecord(category, categoryCount.get(category), Double.isNaN(value) ? 0.0 : value);
 		}
 		csvPrinter.println();
-		
+
 		// Print annotation statistics for each annotator and all categories
 		csvPrinter.printComment("Annotation statistics:");
 		csvPrinter.printRecord(Lists.asList("Annotator", annotators.toArray(new String[0])));
-		
+
 		String[] countArray = annotators
 				.stream()
 				.map(annotator -> annotatorCategoryCount.get(annotator)
@@ -326,7 +328,7 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 						.toString())
 				.toArray(String[]::new);
 		csvPrinter.printRecord(Lists.asList("Total", countArray));
-		
+
 		for (String category : categories) {
 			countArray = annotators
 					.stream()
@@ -336,17 +338,17 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 		}
 		csvPrinter.println();
 	}
-	
+
 	protected String getCatgoryName(Annotation annotation) {
 		return annotation.getType().getName();
 	}
-	
+
 	protected boolean isCasValid(JCas jCas) throws CASException {
 		// Ensure document has SOFA string
 		if (jCas.getDocumentText() == null || jCas.getDocumentText().isEmpty())
 			return false;
-		
-		
+
+
 		// Check for empty view name and correct listing
 		validViewNames = Streams.stream(jCas.getViewIterator())
 				.map(JCas::getViewName)
@@ -356,23 +358,23 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 					return StringUtils.isNotEmpty(viewName) && pRelation == listedAnnotators.contains(viewName);
 				})
 				.collect(Collectors.toCollection(LinkedHashSet::new));
-		
+
 		// Check for annotation count
 		if (pMinAnnotations > 0) {
 			for (String fullViewName : ImmutableSet.copyOf(validViewNames)) {
 				JCas viewCas = jCas.getView(fullViewName);
-				
+
 				// Get all fingerprinted annotations
 				HashSet<TOP> fingerprinted = JCasUtil.select(viewCas, Fingerprint.class).stream()
 						.map(Fingerprint::getReference)
 						.collect(Collectors.toCollection(HashSet::new));
-				
+
 				long totalAnnotations = 0L;
 				for (Class<? extends Annotation> annotationClass : annotationClasses) {
 					// Count total annotations
 					totalAnnotations += getAnnotations(viewCas, fingerprinted, annotationClass).size();
 				}
-				
+
 				// Remove views with insufficient annotation count
 				if (totalAnnotations < pMinAnnotations) {
 					logger.debug(String.format("Removing view %s because it has insufficient annoations: %d < %d", fullViewName, totalAnnotations, pMinAnnotations));
@@ -380,16 +382,16 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 				}
 			}
 		}
-		
+
 		viewCount = validViewNames.size();
-		
+
 		// TODO: comment.
 		// If was set, ensure there are multiple views other than _InitialView
 		if (viewCount < pMinViews)
 			return false;
 		return true;
 	}
-	
+
 	@Nonnull
 	ArrayList<? extends Annotation> getAnnotations(JCas viewCas, HashSet<TOP> fingerprinted, Class<? extends Annotation> annotationClass) {
 		ArrayList<? extends Annotation> annotations;
@@ -399,19 +401,19 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 					.collect(Collectors.toCollection(ArrayList::new));
 		else
 			annotations = new ArrayList<>(JCasUtil.select(viewCas, annotationClass));
-		
+
 		// Create a set of annotations, that are overlapped by another annotation
 		HashSet<Annotation> overlappedAnnotations = getOverlappedAnnotations(viewCas, annotationClass, annotations);
 		// Remove annotations, that are overlapped by an annotation of the same Type
 		annotations.removeAll(overlappedAnnotations);
 		return annotations;
 	}
-	
+
 	@Override
 	public void collectionProcessComplete() throws AnalysisEngineProcessException {
 		super.collectionProcessComplete();
 	}
-	
+
 	@Override
 	public void destroy() {
 		super.destroy();
@@ -424,13 +426,13 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 			}
 		}
 	}
-	
+
 	@Nonnull
 	protected JCas createDocumentAgreementAnnotations(JCas viewIAA, IAgreementMeasure agreement, String pAgreementMeasure, Set<String> categories, CountMap<String> globalCategoryCount) {
 		AgreementContainer agreementContainer = new AgreementContainer(viewIAA);
 		agreementContainer.setAgreementMeasure(pAgreementMeasure);
 		agreementContainer.setOverallAgreementValue(agreement.calculateAgreement());
-		
+
 		String[] categoryStrings = categories.toArray(new String[0]);
 		StringArray categoryNamesStringArray = new StringArray(viewIAA, categories.size());
 		LongArray categoryCountsLongArray = new LongArray(viewIAA, categories.size());
@@ -446,10 +448,10 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 		agreementContainer.setCategoryAgreementValues(categoryValuesDoubleArray);
 		agreementContainer.setCategoryCounts(categoryCountsLongArray);
 		viewIAA.addFsToIndexes(agreementContainer);
-		
+
 		return viewIAA;
 	}
-	
+
 	@Nonnull
 	protected JCas initializeIaaView(JCas jCas) {
 		JCas viewIAA = JCasUtil.getView(jCas, "IAA", true);
