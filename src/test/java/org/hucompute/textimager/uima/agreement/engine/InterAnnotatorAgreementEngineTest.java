@@ -1,12 +1,12 @@
 package org.hucompute.textimager.uima.agreement.engine;
 
 import com.google.common.io.Files;
-import de.tudarmstadt.ukp.dkpro.core.io.xmi.XmiReader;
 import org.apache.uima.collection.CollectionReader;
 import org.apache.uima.fit.factory.AggregateBuilder;
 import org.apache.uima.fit.factory.AnalysisEngineFactory;
 import org.apache.uima.fit.factory.CollectionReaderFactory;
 import org.apache.uima.fit.pipeline.SimplePipeline;
+import org.dkpro.core.io.xmi.XmiReader;
 import org.junit.Test;
 import org.texttechnologylab.annotation.AbstractNamedEntity;
 import org.texttechnologylab.annotation.NamedEntity;
@@ -31,7 +31,7 @@ public class InterAnnotatorAgreementEngineTest {
 				String txtPath = "src/test/resources/out/txt/";
 				Paths.get(xmiPath).toFile().mkdirs();
 				Paths.get(txtPath).toFile().mkdirs();
-				String sessionId = Files.toString(new File("src/test/resources/session.id"), StandardCharsets.UTF_8).trim();
+				String sessionId = Files.asCharSource(new File("src/test/resources/session.id"), StandardCharsets.UTF_8).read().trim();
 				collection = CollectionReaderFactory.createReader(
 						TextAnnotatorRepositoryCollectionReader.class,
 						TextAnnotatorRepositoryCollectionReader.PARAM_SOURCE_LOCATION, xmiPath,

@@ -1,7 +1,7 @@
 /**
- * biofid.agreement is used to calculate the inter-annotator agreement for annotations in an UIMA JCas and is
- * part of the TextAnnotator & TextImager pipelines.<br>
- * It was created by the Text Technology Lab, Goethe University Frankfurt for BIOfid project.<br>
+ * org.hucompute.textimager.uima.agreement is used to calculate the inter-annotator agreement for annotations in an UIMA
+ * JCas and is part of the TextAnnotator & TextImager pipelines.<br>
+ * It was created by the Text Technology Lab, Goethe University Frankfurt for the BIOfid project.<br>
  * <p/>
  * Author: Manuel Stoeckel<br>
  * Contact: manuel.stoeckel (at) stud.uni-frankfurt.de<br>

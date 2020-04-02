@@ -16,7 +16,7 @@ import org.apache.uima.jcas.tcas.Annotation;
 import org.dkpro.statistics.agreement.unitizing.IUnitizingAnnotationUnit;
 import org.dkpro.statistics.agreement.unitizing.KrippendorffAlphaUnitizingAgreement;
 import org.dkpro.statistics.agreement.unitizing.UnitizingAnnotationStudy;
-import org.texttechnologielab.annotation.type.Fingerprint;
+import org.texttechnologylab.annotation.type.Fingerprint;
 import org.texttechnologylab.utilities.collections.CountMap;
 import org.texttechnologylab.utilities.collections.IndexingMap;
 
