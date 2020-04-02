@@ -3,6 +3,7 @@
 ## Description
 UIMA Inter-Annotator Agreement Module for the TextImager/TextAnnotator Pipeline
 
+[![](https://jitpack.io/v/texttechnologylab/UIMA-Agreement.svg)](https://jitpack.io/#texttechnologylab/UIMA-Agreement)
 
 ### UIMA Analysis Engines
 The engines work with any type system.
