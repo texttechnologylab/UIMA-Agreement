@@ -1,4 +1,4 @@
-package org.hucompute.textimager.uima.agreement.engine;
+package org.texttechnologylab.agreement.engine;
 
 import com.google.common.io.Files;
 import org.apache.uima.collection.CollectionReader;

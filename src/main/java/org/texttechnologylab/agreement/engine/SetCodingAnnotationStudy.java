@@ -1,4 +1,4 @@
-package org.hucompute.textimager.uima.agreement.engine;
+package org.texttechnologylab.agreement.engine;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -46,10 +46,6 @@ public class SetCodingAnnotationStudy extends CodingAnnotationStudy {
         setSelectionStrategy = strategy;
         krippendorffAlphaAgreement = new KrippendorffAlphaAgreement(dummyStudy, new NominalDistanceFunction());
         sortByAgreement = Comparator.comparingDouble(this::getItemAgreement);
-    }
-
-    public ICodingAnnotationItem[] addItemSets(Set<String>... annotations) {
-        return addItemSetsAsArray(annotations);
     }
 
     public ICodingAnnotationItem[] addItemSetsAsArray(Set<String>[] annotations) {

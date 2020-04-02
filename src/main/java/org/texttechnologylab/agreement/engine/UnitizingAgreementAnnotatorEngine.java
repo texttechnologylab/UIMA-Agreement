@@ -1,4 +1,4 @@
-package org.hucompute.textimager.uima.agreement.engine;
+package org.texttechnologylab.agreement.engine;
 
 import eu.openminted.share.annotations.api.Parameters;
 import org.apache.uima.UimaContext;
@@ -7,8 +7,8 @@ import org.apache.uima.resource.ResourceInitializationException;
 import org.dkpro.statistics.agreement.ICategorySpecificAgreement;
 import org.dkpro.statistics.agreement.unitizing.KrippendorffAlphaUnitizingAgreement;
 
-import static org.hucompute.textimager.uima.agreement.engine.AbstractIAAEngine.PARAM_ANNOTATE_DOCUMENT;
-import static org.hucompute.textimager.uima.agreement.engine.AbstractIAAEngine.PARAM_MULTI_CAS_HANDLING;
+import static org.texttechnologylab.agreement.engine.AbstractIAAEngine.PARAM_ANNOTATE_DOCUMENT;
+import static org.texttechnologylab.agreement.engine.AbstractIAAEngine.PARAM_MULTI_CAS_HANDLING;
 
 /**
  * Inter-annotator agreement engine using a {@link org.dkpro.statistics.agreement.unitizing.UnitizingAnnotationStudy

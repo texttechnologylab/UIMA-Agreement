@@ -1,4 +1,4 @@
-package org.hucompute.textimager.uima.agreement.engine;
+package org.texttechnologylab.agreement.engine;
 
 import com.google.common.collect.ImmutableSet;
 import eu.openminted.share.annotations.api.Parameters;
@@ -11,8 +11,8 @@ import org.dkpro.statistics.agreement.coding.ICodingItemSpecificAgreement;
 import org.dkpro.statistics.agreement.coding.KrippendorffAlphaAgreement;
 import org.dkpro.statistics.agreement.coding.PercentageAgreement;
 
-import static org.hucompute.textimager.uima.agreement.engine.AbstractIAAEngine.PARAM_MULTI_CAS_HANDLING;
-import static org.hucompute.textimager.uima.agreement.engine.CodingIAACollectionProcessingEngine.PARAM_ANNOTATE_TOKEN;
+import static org.texttechnologylab.agreement.engine.AbstractIAAEngine.PARAM_MULTI_CAS_HANDLING;
+import static org.texttechnologylab.agreement.engine.CodingIAACollectionProcessingEngine.PARAM_ANNOTATE_TOKEN;
 
 /**
  * Inter-annotator agreement engine using a {@link CodingAnnotationStudy CodingAnnotationStudy} and {@link

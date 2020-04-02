@@ -1,4 +1,4 @@
-package org.hucompute.textimager.uima.agreement.engine;
+package org.texttechnologylab.agreement.engine;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -39,8 +39,7 @@ public class CsvPrinterEngine extends JCasAnnotator_ImplBase {
      */
     public static final String PARAM_TARGET_LOCATION = ComponentParameters.PARAM_TARGET_LOCATION;
     @ConfigurationParameter(
-            name = ComponentParameters.PARAM_TARGET_LOCATION,
-            mandatory = true
+            name = ComponentParameters.PARAM_TARGET_LOCATION
     )
     private String targetLocation;
 
