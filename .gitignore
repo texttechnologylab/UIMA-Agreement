@@ -2,3 +2,6 @@
 /target/
 /src/test/out/*
 /src/test/resources/session.id
+/.classpath
+/.project
+/pom.xml.versionsBackup
