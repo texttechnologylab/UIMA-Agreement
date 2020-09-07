@@ -9,6 +9,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CASException;
+import org.apache.uima.UimaContext;
+import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.fit.util.JCasUtil;
 import org.apache.uima.jcas.JCas;
 import org.apache.uima.jcas.cas.TOP;
@@ -16,11 +18,14 @@ import org.apache.uima.jcas.tcas.Annotation;
 import org.dkpro.statistics.agreement.unitizing.IUnitizingAnnotationUnit;
 import org.dkpro.statistics.agreement.unitizing.KrippendorffAlphaUnitizingAgreement;
 import org.dkpro.statistics.agreement.unitizing.UnitizingAnnotationStudy;
+import org.dkpro.statistics.agreement.visualization.CoincidenceMatrixPrinter; 
 import org.texttechnologylab.annotation.type.Fingerprint;
 import org.texttechnologylab.utilities.collections.CountMap;
 import org.texttechnologylab.utilities.collections.IndexingMap;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
@@ -44,7 +49,17 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
     private TreeSet<String> categories = new TreeSet<>();
     private AtomicInteger documentOffset = new AtomicInteger(0);
     private ArrayList<ImmutablePair<Integer, Iterable<IUnitizingAnnotationUnit>>> annotationStudies = new ArrayList<>();
-    private IndexingMap<String> annotatorIndex = new IndexingMap<>();
+    private IndexingMap<String> globalAnnotatorIndex = new IndexingMap<>();
+
+    private boolean bDoHandleCombined;
+    private boolean bDoHandleSeparate;
+
+    @Override
+    public void initialize(UimaContext context) throws ResourceInitializationException {
+        super.initialize(context);
+        bDoHandleCombined = pMultiCasHandling == BOTH || pMultiCasHandling == COMBINED;
+        bDoHandleSeparate = pMultiCasHandling == BOTH || pMultiCasHandling == SEPARATE;
+    }
 
     @Override
     public void process(JCas jCas) throws AnalysisEngineProcessException {
@@ -54,6 +69,8 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
             // Initialize study
             int documentLength = JCasUtil.select(jCas, Token.class).size();
             UnitizingAnnotationStudy perCasStudy = new UnitizingAnnotationStudy((int) viewCount, documentLength);
+            IndexingMap<String> perCasAnnotatorIndex = new IndexingMap<>();
+            UnitizingAnnotationStudy globalStudy = new UnitizingAnnotationStudy((int) viewCount, documentLength);
 
             // Count all annotations for PARAM_MIN_ANNOTATIONS
             CountMap<String> perViewAnnotationCount = new CountMap<>();
@@ -63,7 +80,8 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
                 JCas viewCas = jCas.getView(fullViewName);
                 // Split user id from view name and get annotator index for this id. Discards "_InitialView"
                 String viewName = StringUtils.substringAfterLast(fullViewName.trim(), "/");
-                annotatorIndex.add(viewName);
+                perCasAnnotatorIndex.add(viewName);
+                globalAnnotatorIndex.add(viewName);
 
                 // Get all fingerprinted annotations
                 HashSet<TOP> fingerprinted = JCasUtil.select(viewCas, Fingerprint.class).stream()
@@ -122,26 +140,37 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
                         }
 
                         String category = getCatgoryName(annotation);
+                        categories.add(category);
+                        
                         int length = end - begin + 1;
                         perCasStudy.addUnit(
                                 begin,
                                 length,
-                                annotatorIndex.get(viewName),
+                                perCasAnnotatorIndex.get(viewName),
                                 category
                         );
-                        categories.add(category);
-
                         perViewAnnotationCount.inc(viewName);
+
+                        if (bDoHandleCombined) {
+                            globalStudy.addUnit(
+                                    begin,
+                                    length,
+                                    globalAnnotatorIndex.get(viewName),
+                                    category
+                            );
+                        }
                     }
                 }
             }
 
             // Store the collected annotations units and update the document offset for final evaluation
-            annotationStudies.add(ImmutablePair.of(documentOffset.get(), perCasStudy.getUnits()));
-            documentOffset.getAndAdd(documentLength);
+            if (bDoHandleCombined) {
+                annotationStudies.add(ImmutablePair.of(documentOffset.get(), perCasStudy.getUnits()));
+                documentOffset.getAndAdd(documentLength);
+            }
 
-            if (SEPARATE.equals(pMultiCasHandling) || BOTH.equals(pMultiCasHandling)) {
-                handleSeparate(jCas, perCasStudy);
+            if (bDoHandleSeparate) {
+                handleSeparate(jCas, perCasStudy, perCasAnnotatorIndex);
             }
         } catch (CASException e) {
             getLogger().error("Error in UnitizingIAACollectionProcessingEngine.process().", e);
@@ -150,21 +179,13 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
 
     @Override
     public void collectionProcessComplete() throws AnalysisEngineProcessException {
-        if (annotatorIndex.size() > 1) {
-            switch (pMultiCasHandling) {
-                case SEPARATE:
-                    return;
-                case BOTH:
-                case COMBINED:
-                default:
-                    handleCombined();
-                    break;
-            }
+        if (globalAnnotatorIndex.size() > 1 && bDoHandleCombined) {
+            handleCombined();
         }
         super.collectionProcessComplete();
     }
 
-    private void handleSeparate(JCas jCas, UnitizingAnnotationStudy completeStudy) {
+    private void handleSeparate(JCas jCas, UnitizingAnnotationStudy completeStudy, IndexingMap<String> perCasAnnotatorIndex) {
         if (!pPrintStatistics && !pAnnotateDocument)
             return;
 
@@ -173,7 +194,7 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
         HashMap<String, CountMap<String>> annotatorCategoryCount = new HashMap<>();
 
         // Initialize a CountMap for each annotator
-        for (String annotator : annotatorIndex.keySet()) {
+        for (String annotator : perCasAnnotatorIndex.keySet()) {
             annotatorCategoryCount.put(annotator, new CountMap<>());
         }
 
@@ -183,7 +204,7 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
 
             // Update category counts
             categoryCount.inc(category);
-            annotatorCategoryCount.get(annotatorIndex.getKey(id)).inc(category);
+            annotatorCategoryCount.get(perCasAnnotatorIndex.getKey(id)).inc(category);
         }
 
         KrippendorffAlphaUnitizingAgreement agreement = new KrippendorffAlphaUnitizingAgreement(completeStudy);
@@ -200,14 +221,20 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
                         documentId
                 ));
                 csvPrinter.printComment(String.format("Inter-annotator agreement for %d annotators: %s",
-                        annotatorIndex.size(), annotatorIndex.keySet().toString()
+                        perCasAnnotatorIndex.size(), perCasAnnotatorIndex.keySet().toString()
                 ));
 
                 // Print the agreement for all categories
                 csvPrinter.printRecord("Category", "Count", "Agreement");
                 csvPrinter.printRecord("Overall", completeStudy.getUnitCount(), agreement.calculateAgreement());
-                printStudyResultsAndStatistics(agreement, categoryCount, annotatorCategoryCount, categories, annotatorIndex.keySet(), csvPrinter);
+                printStudyResultsAndStatistics(agreement, categoryCount, annotatorCategoryCount, categories, perCasAnnotatorIndex.keySet(), csvPrinter);
                 csvPrinter.flush();
+                csvPrinter.close();
+
+                // fileName = StringUtils.appendIfMissing(StringUtils.removeEnd(fileName, ".csv") + "_cm", ".tsv");
+                // PrintStream out = new PrintStream(getOutputStream(fileName));
+                // new CoincidenceMatrixPrinter().print(out, completeStudy);
+                // out.close();
             } catch (IOException e) {
                 getLogger().error("Error during statistics printing.", e);
             }
@@ -220,15 +247,15 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
     }
 
     private void handleCombined() {
-        if (annotationStudies.isEmpty() || annotatorIndex.isEmpty())
+        if (annotationStudies.isEmpty() || globalAnnotatorIndex.isEmpty())
             return;
 
-        UnitizingAnnotationStudy completeStudy = new UnitizingAnnotationStudy(annotatorIndex.size(), documentOffset.get());
+        UnitizingAnnotationStudy completeStudy = new UnitizingAnnotationStudy(globalAnnotatorIndex.size(), documentOffset.get());
         CountMap<String> categoryCount = new CountMap<>();
         HashMap<String, CountMap<String>> annotatorCategoryCount = new HashMap<>();
 
         // Initialize a CountMap for each annotator
-        for (String annotator : annotatorIndex.keySet()) {
+        for (String annotator : globalAnnotatorIndex.keySet()) {
             annotatorCategoryCount.put(annotator, new CountMap<>());
         }
 
@@ -247,7 +274,7 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
 
                 // Update category counts
                 categoryCount.inc(category);
-                annotatorCategoryCount.get(annotatorIndex.getKey(id)).inc(category);
+                annotatorCategoryCount.get(globalAnnotatorIndex.getKey(id)).inc(category);
             }
         }
 
@@ -256,7 +283,7 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
                 CSVPrinter csvPrinter = getCsvPrinter("KrippendorffAlphaUnitizingAgreement.csv");
                 csvPrinter.printComment("KrippendorffAlphaUnitizingAgreement, COMBINED");
                 csvPrinter.printComment(String.format("Inter-annotator agreement for %d annotators: %s",
-                        annotatorIndex.size(), annotatorIndex.keySet().toString()
+                        globalAnnotatorIndex.size(), globalAnnotatorIndex.keySet().toString()
                 ));
 
                 // Compute and print the agreement for all categories
@@ -264,7 +291,7 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
 
                 csvPrinter.printRecord("Category", "Count", "Agreement");
                 csvPrinter.printRecord("Overall", completeStudy.getUnitCount(), agreement.calculateAgreement());
-                printStudyResultsAndStatistics(agreement, categoryCount, annotatorCategoryCount, categories, annotatorIndex.keySet(), csvPrinter);
+                printStudyResultsAndStatistics(agreement, categoryCount, annotatorCategoryCount, categories, globalAnnotatorIndex.keySet(), csvPrinter);
                 csvPrinter.flush();
             } catch (IOException e) {
                 getLogger().error("Error during statistics printing.", e);

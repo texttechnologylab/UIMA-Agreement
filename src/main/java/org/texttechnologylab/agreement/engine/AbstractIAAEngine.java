@@ -23,12 +23,14 @@ import org.dkpro.core.api.parameter.ComponentParameters;
 import org.dkpro.statistics.agreement.IAgreementMeasure;
 import org.dkpro.statistics.agreement.ICategorySpecificAgreement;
 import org.texttechnologylab.annotation.type.Fingerprint;
+import org.texttechnologylab.annotation.administration.FinishAnnotation;
 import org.texttechnologylab.iaa.Agreement;
 import org.texttechnologylab.iaa.AgreementContainer;
 import org.texttechnologylab.utilities.collections.CountMap;
 
 import javax.annotation.Nonnull;
 import java.io.BufferedWriter;
+import java.io.OutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -36,6 +38,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -199,6 +202,12 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
                     "PARAM_MULTI_CAS_HANDLING is set to 'COMBINED'."
     )
     boolean pAnnotateDocument;
+    
+    public static final String PARAM_FILTER_FINISHED = "pFilterFinishedViews";
+    @ConfigurationParameter(name = PARAM_FILTER_FINISHED , defaultValue = "true", mandatory = false,
+            description = "Set false to disable finished view check. Default value: true."
+    )
+    boolean pFilterFinishedViews;
 
     protected ExtendedLogger logger;
     long viewCount;
@@ -237,7 +246,6 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
         if (!listedAnnotators.isEmpty()) {
             logger.info(String.format("%s annotators with ids: %s", pRelation ? "Whitelisting" : "Blacklisting", listedAnnotators.toString()));
         }
-
 
         if (!Arrays.asList("System.out", "System.err").contains(targetLocation)) {
             try {
@@ -285,6 +293,16 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
                 }
         }
         return new CSVPrinter(targetAppendable, csvFormat);
+    }
+
+    OutputStream getOutputStream(@Nonnull String suffix) throws IOException {
+        Path path = Paths.get(targetLocation);
+        Path targetPath = Paths.get(path.toString(), suffix);
+        if (!targetPath.toFile().exists() || pOverwriteExisting) { // File does not exist or pOverwriteExisting is true.
+            return Files.newOutputStream(targetPath, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+        } else { // File does exist and pOverwriteExisting is false.
+            return Files.newOutputStream(targetPath, StandardOpenOption.WRITE, StandardOpenOption.APPEND);
+        }
     }
 
     /**
@@ -350,6 +368,26 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 
         // Check for empty view name and correct listing
         validViewNames = Streams.stream(jCas.getViewIterator())
+                // If PARAM_FILTER_FINISHED flag is set, filter for views that are marked as "finished"
+                .filter(viewCas -> {
+                    String viewName = StringUtils.substringAfterLast(viewCas.getViewName().trim(), "/");
+                    viewName = viewName.isEmpty() ? viewCas.getViewName().trim() : viewName;
+                    return !pFilterFinishedViews || JCasUtil.select(viewCas, FinishAnnotation.class).stream()
+                            .map(FinishAnnotation::getUser)
+                            .map(fullName -> StringUtils.substringAfterLast(fullName.trim(), "/"))
+                            .anyMatch(Predicate.isEqual(viewName));
+                    // if (!pFilterFinishedViews || JCasUtil.select(viewCas, FinishAnnotation.class).stream()
+                    //         .map(FinishAnnotation::getUser)
+                    //         .map(fullName -> StringUtils.substringAfterLast(fullName.trim(), "/"))
+                    //         .anyMatch(Predicate.isEqual(viewName))
+                    // ) {
+                    //     getLogger().info(String.format("View '%s' marked as finished", viewName));
+                    //     return true;
+                    // } else {
+                    //     getLogger().info(String.format("View '%s' was filtered out", viewName));
+                    //     return false;
+                    // }
+                })
                 .map(JCas::getViewName)
                 .filter(fullName -> {
                     // If whitelisting (true), the name must be in the set; if blacklisting (false), it must not be in the set

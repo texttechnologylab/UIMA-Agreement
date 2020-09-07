@@ -19,12 +19,15 @@ import org.dkpro.statistics.agreement.IAgreementMeasure;
 import org.dkpro.statistics.agreement.ICategorySpecificAgreement;
 import org.dkpro.statistics.agreement.coding.*;
 import org.dkpro.statistics.agreement.distance.NominalDistanceFunction;
+import org.dkpro.statistics.agreement.visualization.CoincidenceMatrixPrinter;
 import org.texttechnologylab.annotation.type.Fingerprint;
 import org.texttechnologylab.iaa.Agreement;
 import org.texttechnologylab.utilities.collections.CountMap;
 import org.texttechnologylab.utilities.collections.IndexingMap;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -342,6 +345,11 @@ public class CodingIAACollectionProcessingEngine extends AbstractIAAEngine {
                 printStudyResultsAndStatistics((ICategorySpecificAgreement) agreement, globalCategoryCount, annotatorCategoryCount, categories, annotatorList, csvPrinter);
                 printCategoryOverlap(globalCategoryOverlap, csvPrinter);
                 csvPrinter.flush();
+
+                fileName = StringUtils.appendIfMissing(StringUtils.removeEnd(fileName, ".csv") + "_cm", ".tsv");
+                PrintStream out = new PrintStream(getOutputStream(fileName));
+                new CoincidenceMatrixPrinter().print(out, codingAnnotationStudy);
+                out.close();
             } catch (IOException e) {
                 getLogger().error("Error during statistics printing.", e);
             }
@@ -456,6 +464,11 @@ public class CodingIAACollectionProcessingEngine extends AbstractIAAEngine {
                 printStudyResultsAndStatistics((ICategorySpecificAgreement) agreement, globalCategoryCount, annotatorCategoryCount, categories, annotatorList, csvPrinter);
                 printCategoryOverlap(globalCategoryOverlap, csvPrinter);
                 csvPrinter.flush();
+
+                String fileName = pAgreementMeasure + "_cm.tsv";
+                PrintStream out = new PrintStream(getOutputStream(fileName));
+                new CoincidenceMatrixPrinter().print(out, codingAnnotationStudy);
+                out.close();
             } catch (IOException e) {
                 getLogger().error("Error during statistics printing.", e);
             }
