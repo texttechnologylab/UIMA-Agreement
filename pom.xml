@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.hucompute.textimager.uima</groupId>
         <artifactId>textimager-uima</artifactId>
-        <version>0.2.7</version>
+        <version>0.3.0</version>
     </parent>
     <groupId>org.texttechnologylab</groupId>
     <artifactId>uima-agreement</artifactId>
@@ -116,7 +116,7 @@
         <dependency>
             <groupId>com.github.texttechnologylab</groupId>
             <artifactId>Utilities</artifactId>
-            <version>1.0.4-uima-2.10.4</version>
+            <version>1.0.9-uima-2.10.4</version>
         </dependency>
     </dependencies>
 
@@ -156,7 +156,7 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <version>2.22.0</version>
                         <configuration>
-                            <argLine>-Dorg.apache.uima.logger.class=org.apache.uima.util.impl.Log4jLogger_impl</argLine>
+                            <argLine>-Dorg.apache.uima.logger.class=org.texttechnologylab.utilities.uima.util.Log4j2Logger_impl</argLine>
                         </configuration>
                     </plugin>
                 </plugins>

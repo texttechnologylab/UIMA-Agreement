@@ -22,16 +22,16 @@ import org.apache.uima.resource.ResourceInitializationException;
 import org.dkpro.core.api.parameter.ComponentParameters;
 import org.dkpro.statistics.agreement.IAgreementMeasure;
 import org.dkpro.statistics.agreement.ICategorySpecificAgreement;
-import org.texttechnologylab.annotation.type.Fingerprint;
 import org.texttechnologylab.annotation.administration.FinishAnnotation;
+import org.texttechnologylab.annotation.type.Fingerprint;
 import org.texttechnologylab.iaa.Agreement;
 import org.texttechnologylab.iaa.AgreementContainer;
 import org.texttechnologylab.utilities.collections.CountMap;
 
 import javax.annotation.Nonnull;
 import java.io.BufferedWriter;
-import java.io.OutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -202,9 +202,9 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
                     "PARAM_MULTI_CAS_HANDLING is set to 'COMBINED'."
     )
     boolean pAnnotateDocument;
-    
+
     public static final String PARAM_FILTER_FINISHED = "pFilterFinishedViews";
-    @ConfigurationParameter(name = PARAM_FILTER_FINISHED , defaultValue = "true", mandatory = false,
+    @ConfigurationParameter(name = PARAM_FILTER_FINISHED, defaultValue = "true", mandatory = false,
             description = "Set false to disable finished view check. Default value: true."
     )
     boolean pFilterFinishedViews;
@@ -306,12 +306,14 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
     }
 
     /**
-     * Create a set of annotations, that are overlapped by another annotation
+     * Create a set of annotations, that are overlapped by another annotation of the same {@link
+     * org.apache.uima.cas.Type Type}.
      *
      * @param viewCas     The cas containing the annotations.
      * @param aClass      The class of the overlapped annotations.
      * @param annotations A collection of all annotations.
-     * @return A HashSet of all annotations that are overlapped by any other annotation.
+     * @return A HashSet of all annotations that are overlapped by any other annotation of the same {@link
+     *         org.apache.uima.cas.Type Type}.
      */
     @Nonnull
     protected HashSet<Annotation> getOverlappedAnnotations(JCas viewCas, Class<? extends Annotation> aClass, Collection<? extends Annotation> annotations) {

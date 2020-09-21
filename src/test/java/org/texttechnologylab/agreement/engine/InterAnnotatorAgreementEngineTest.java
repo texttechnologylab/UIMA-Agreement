@@ -71,32 +71,34 @@ public class InterAnnotatorAgreementEngineTest {
                     CsvPrinterEngine.PARAM_FILTER_FINGERPRINTED, filterFingerprinted
             ));
 
-            String[] unitizingIncludeFlags = new String[]{TTLabUnitizingIAACollectionProcessingEngine.METAPHOR, TTLabUnitizingIAACollectionProcessingEngine.METONYM, TTLabUnitizingIAACollectionProcessingEngine.SPECIFIC};
+//            String[] unitizingIncludeFlags = new String[]{TTLabUnitizingIAACollectionProcessingEngine.METAPHOR, TTLabUnitizingIAACollectionProcessingEngine.METONYM, TTLabUnitizingIAACollectionProcessingEngine.SPECIFIC};
+            String[] unitizingIncludeFlags = new String[]{};
             ab.add(AnalysisEngineFactory.createEngineDescription(
                     TTLabUnitizingIAACollectionProcessingEngine.class,
                     TTLabUnitizingIAACollectionProcessingEngine.PARAM_ANNOTATION_CLASSES, annotationClasses,
                     TTLabUnitizingIAACollectionProcessingEngine.PARAM_INCLUDE_FLAGS, unitizingIncludeFlags,
                     TTLabUnitizingIAACollectionProcessingEngine.PARAM_MIN_VIEWS, 2,
-                    TTLabUnitizingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotatorWhitelist,
-                    TTLabUnitizingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, UnitizingIAACollectionProcessingEngine.WHITELIST,
-//					TTLabUnitizingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotatorBlacklist,
-//					TTLabUnitizingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, UnitizingIAACollectionProcessingEngine.BLACKLIST,
+//                    TTLabUnitizingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotatorWhitelist,
+//                    TTLabUnitizingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, UnitizingIAACollectionProcessingEngine.WHITELIST,
+					TTLabUnitizingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotatorBlacklist,
+					TTLabUnitizingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, UnitizingIAACollectionProcessingEngine.BLACKLIST,
                     TTLabUnitizingIAACollectionProcessingEngine.PARAM_FILTER_FINGERPRINTED, filterFingerprinted,
                     TTLabUnitizingIAACollectionProcessingEngine.PARAM_MULTI_CAS_HANDLING, TTLabUnitizingIAACollectionProcessingEngine.BOTH,
-                    TTLabUnitizingIAACollectionProcessingEngine.PARAM_MIN_ANNOTATIONS, 10,
+                    TTLabUnitizingIAACollectionProcessingEngine.PARAM_MIN_ANNOTATIONS, 1,
                     TTLabUnitizingIAACollectionProcessingEngine.PARAM_TARGET_LOCATION, "src/test/resources/out/unitizing"
             ));
 
-            String[] codingIncludeFlags = new String[]{TTLabCodingIAACollectionProcessingEngine.METAPHOR, TTLabCodingIAACollectionProcessingEngine.METONYM, TTLabCodingIAACollectionProcessingEngine.SPECIFIC};
+//            String[] codingIncludeFlags = new String[]{TTLabCodingIAACollectionProcessingEngine.METAPHOR, TTLabCodingIAACollectionProcessingEngine.METONYM, TTLabCodingIAACollectionProcessingEngine.SPECIFIC};
+            String[] codingIncludeFlags = new String[]{};
             ab.add(AnalysisEngineFactory.createEngineDescription(
                     TTLabCodingIAACollectionProcessingEngine.class,
                     TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATION_CLASSES, annotationClasses,
                     TTLabCodingIAACollectionProcessingEngine.PARAM_INCLUDE_FLAGS, codingIncludeFlags,
                     TTLabCodingIAACollectionProcessingEngine.PARAM_MIN_VIEWS, 2,
-                    TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotatorWhitelist,
-                    TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, TTLabCodingIAACollectionProcessingEngine.WHITELIST,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotatorBlacklist,
-//					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, UnitizingIAACollectionProcessingEngine.BLACKLIST,
+//                    TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotatorWhitelist,
+//                    TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, TTLabCodingIAACollectionProcessingEngine.WHITELIST,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotatorBlacklist,
+					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, UnitizingIAACollectionProcessingEngine.BLACKLIST,
                     TTLabCodingIAACollectionProcessingEngine.PARAM_FILTER_FINGERPRINTED, filterFingerprinted,
                     TTLabCodingIAACollectionProcessingEngine.PARAM_AGREEMENT_MEASURE, TTLabCodingIAACollectionProcessingEngine.KRIPPENDORFF_ALPHA_AGREEMENT,
                     TTLabCodingIAACollectionProcessingEngine.PARAM_SET_SELECTION_STRATEGY, SetSelectionStrategy.MAX,
