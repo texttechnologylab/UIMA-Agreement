@@ -1,0 +1,34 @@
+{
+	"org.texttechnologylab.annotation.type.Morphology":[
+		"org.texttechnologylab.annotation.type.Body_Corpus"
+	],
+	"org.texttechnologylab.annotation.type.Habitat":[
+		"org.texttechnologylab.annotation.type.Location_Place"
+	],
+	"org.texttechnologylab.annotation.type.Society":[
+		"org.texttechnologylab.annotation.type.Group_Collection"
+	],
+	"org.texttechnologylab.annotation.type.Motive":[
+		"org.texttechnologylab.annotation.type.Cognition_Ideation",
+		"org.texttechnologylab.annotation.type.Feeling_Emotion"
+	],
+	"org.texttechnologylab.annotation.type.Possession_Property":[
+		"org.texttechnologylab.annotation.type.Artifact"
+	],
+	"org.texttechnologylab.annotation.type.concept.Morphology":[
+		"org.texttechnologylab.annotation.type.concept.Body_Corpus"
+	],
+	"org.texttechnologylab.annotation.type.concept.Habitat":[
+		"org.texttechnologylab.annotation.type.concept.Location_Place"
+	],
+	"org.texttechnologylab.annotation.type.concept.Society":[
+		"org.texttechnologylab.annotation.type.concept.Group_Collection"
+	],
+	"org.texttechnologylab.annotation.type.concept.Motive":[
+		"org.texttechnologylab.annotation.type.concept.Cognition_Ideation",
+		"org.texttechnologylab.annotation.type.concept.Feeling_Emotion"
+	],
+	"org.texttechnologylab.annotation.type.concept.Possession_Property":[
+		"org.texttechnologylab.annotation.type.concept.Artifact"
+	]
+}

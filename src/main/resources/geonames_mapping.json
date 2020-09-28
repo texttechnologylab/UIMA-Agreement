@@ -1,0 +1,7 @@
+{
+	"GDN":[
+		"org.texttechnologylab.annotation.type.concept.Artifact",
+		"org.texttechnologylab.annotation.type.concept.Habitat",
+		"org.texttechnologylab.annotation.type.concept.Location_Place"
+	]
+}
