@@ -27,7 +27,7 @@ public class InterAnnotatorAgreementEngineTest {
         try {
             final boolean download = false;
 
-            String xmiPath = "src/test/resources/out/xmi/";
+            String xmiPath = "/home/manu/Work/Utilities/src/test/out/xmi/";
             CollectionReader collection;
             if (download) {
                 String txtPath = "src/test/resources/out/txt/";
@@ -83,9 +83,10 @@ public class InterAnnotatorAgreementEngineTest {
 					TTLabUnitizingIAACollectionProcessingEngine.PARAM_ANNOTATOR_LIST, annotatorBlacklist,
 					TTLabUnitizingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, UnitizingIAACollectionProcessingEngine.BLACKLIST,
                     TTLabUnitizingIAACollectionProcessingEngine.PARAM_FILTER_FINGERPRINTED, filterFingerprinted,
-                    TTLabUnitizingIAACollectionProcessingEngine.PARAM_MULTI_CAS_HANDLING, TTLabUnitizingIAACollectionProcessingEngine.BOTH,
-                    TTLabUnitizingIAACollectionProcessingEngine.PARAM_MIN_ANNOTATIONS, 1,
-                    TTLabUnitizingIAACollectionProcessingEngine.PARAM_TARGET_LOCATION, "src/test/resources/out/unitizing"
+                    TTLabUnitizingIAACollectionProcessingEngine.PARAM_MULTI_CAS_HANDLING, TTLabUnitizingIAACollectionProcessingEngine.SEPARATE,
+                    TTLabUnitizingIAACollectionProcessingEngine.PARAM_MIN_ANNOTATIONS, 0,
+                    TTLabUnitizingIAACollectionProcessingEngine.PARAM_TARGET_LOCATION, "/media/manu/Storage/PowerFolders/Work/2020.09.21-iaa_finished-entity_concept/"
+//                    TTLabUnitizingIAACollectionProcessingEngine.PARAM_TARGET_LOCATION, "src/test/resources/out/unitizing"
             ));
 
 //            String[] codingIncludeFlags = new String[]{TTLabCodingIAACollectionProcessingEngine.METAPHOR, TTLabCodingIAACollectionProcessingEngine.METONYM, TTLabCodingIAACollectionProcessingEngine.SPECIFIC};
@@ -101,9 +102,9 @@ public class InterAnnotatorAgreementEngineTest {
 					TTLabCodingIAACollectionProcessingEngine.PARAM_ANNOTATOR_RELATION, UnitizingIAACollectionProcessingEngine.BLACKLIST,
                     TTLabCodingIAACollectionProcessingEngine.PARAM_FILTER_FINGERPRINTED, filterFingerprinted,
                     TTLabCodingIAACollectionProcessingEngine.PARAM_AGREEMENT_MEASURE, TTLabCodingIAACollectionProcessingEngine.KRIPPENDORFF_ALPHA_AGREEMENT,
-                    TTLabCodingIAACollectionProcessingEngine.PARAM_SET_SELECTION_STRATEGY, SetSelectionStrategy.MAX,
-                    TTLabCodingIAACollectionProcessingEngine.PARAM_MULTI_CAS_HANDLING, TTLabCodingIAACollectionProcessingEngine.BOTH,
-                    TTLabCodingIAACollectionProcessingEngine.PARAM_MIN_ANNOTATIONS, 10,
+                    TTLabCodingIAACollectionProcessingEngine.PARAM_SET_SELECTION_STRATEGY, SetSelectionStrategy.MATCH,
+                    TTLabCodingIAACollectionProcessingEngine.PARAM_MULTI_CAS_HANDLING, TTLabCodingIAACollectionProcessingEngine.SEPARATE,
+                    TTLabCodingIAACollectionProcessingEngine.PARAM_MIN_ANNOTATIONS, 1,
                     TTLabCodingIAACollectionProcessingEngine.PARAM_TARGET_LOCATION, "src/test/resources/out/coding/"
             ));
 //			ab.add(AnalysisEngineFactory.createEngineDescription(

@@ -70,7 +70,7 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
             mandatory = false,
             description = "Decides weather to white- to or blacklist the given annotators."
     )
-    boolean pRelation;
+    boolean pAnnotatorRelation;
     public static final Boolean WHITELIST = true;
     public static final Boolean BLACKLIST = false;
 
@@ -244,7 +244,7 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
         }
         logger.info("Computing inter-annotator agreement for subclasses of " + annotationClasses.toString());
         if (!listedAnnotators.isEmpty()) {
-            logger.info(String.format("%s annotators with ids: %s", pRelation ? "Whitelisting" : "Blacklisting", listedAnnotators.toString()));
+            logger.info(String.format("%s annotators with ids: %s", pAnnotatorRelation ? "Whitelisting" : "Blacklisting", listedAnnotators.toString()));
         }
 
         if (!Arrays.asList("System.out", "System.err").contains(targetLocation)) {
@@ -362,6 +362,21 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
         return annotation.getType().getName();
     }
 
+    /**
+     *  If PARAM_FILTER_FINISHED flag is set, filter for views that are marked as "finished"
+     *
+     * @param viewCas
+     * @return
+     */
+    private boolean isViewFinished(JCas viewCas) {
+        String viewName = StringUtils.substringAfterLast(viewCas.getViewName().trim(), "/");
+        viewName = viewName.isEmpty() ? viewCas.getViewName().trim() : viewName;
+        return !pFilterFinishedViews || JCasUtil.select(viewCas, FinishAnnotation.class).stream()
+                .map(FinishAnnotation::getUser)
+                .map(fullName -> StringUtils.substringAfterLast(fullName.trim(), "/"))
+                .anyMatch(Predicate.isEqual(viewName));
+    }
+
     protected boolean isCasValid(JCas jCas) throws CASException {
         // Ensure document has SOFA string
         if (jCas.getDocumentText() == null || jCas.getDocumentText().isEmpty())
@@ -370,31 +385,12 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 
         // Check for empty view name and correct listing
         validViewNames = Streams.stream(jCas.getViewIterator())
-                // If PARAM_FILTER_FINISHED flag is set, filter for views that are marked as "finished"
-                .filter(viewCas -> {
-                    String viewName = StringUtils.substringAfterLast(viewCas.getViewName().trim(), "/");
-                    viewName = viewName.isEmpty() ? viewCas.getViewName().trim() : viewName;
-                    return !pFilterFinishedViews || JCasUtil.select(viewCas, FinishAnnotation.class).stream()
-                            .map(FinishAnnotation::getUser)
-                            .map(fullName -> StringUtils.substringAfterLast(fullName.trim(), "/"))
-                            .anyMatch(Predicate.isEqual(viewName));
-                    // if (!pFilterFinishedViews || JCasUtil.select(viewCas, FinishAnnotation.class).stream()
-                    //         .map(FinishAnnotation::getUser)
-                    //         .map(fullName -> StringUtils.substringAfterLast(fullName.trim(), "/"))
-                    //         .anyMatch(Predicate.isEqual(viewName))
-                    // ) {
-                    //     getLogger().info(String.format("View '%s' marked as finished", viewName));
-                    //     return true;
-                    // } else {
-                    //     getLogger().info(String.format("View '%s' was filtered out", viewName));
-                    //     return false;
-                    // }
-                })
+                .filter(this::isViewFinished)
                 .map(JCas::getViewName)
                 .filter(fullName -> {
                     // If whitelisting (true), the name must be in the set; if blacklisting (false), it must not be in the set
                     String viewName = StringUtils.substringAfterLast(fullName.trim(), "/");
-                    return StringUtils.isNotEmpty(viewName) && pRelation == listedAnnotators.contains(viewName);
+                    return StringUtils.isNotEmpty(viewName) && pAnnotatorRelation == listedAnnotators.contains(viewName);
                 })
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 

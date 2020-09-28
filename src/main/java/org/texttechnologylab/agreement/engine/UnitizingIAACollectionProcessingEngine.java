@@ -9,7 +9,6 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.uima.UimaContext;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CASException;
@@ -23,6 +22,7 @@ import org.dkpro.statistics.agreement.unitizing.IUnitizingAnnotationUnit;
 import org.dkpro.statistics.agreement.unitizing.KrippendorffAlphaUnitizingAgreement;
 import org.dkpro.statistics.agreement.unitizing.UnitizingAnnotationStudy;
 import org.json.JSONObject;
+import org.texttechnologylab.annotation.GeoNamesEntity;
 import org.texttechnologylab.annotation.type.Fingerprint;
 import org.texttechnologylab.utilities.collections.CountMap;
 import org.texttechnologylab.utilities.collections.IndexingMap;
@@ -58,7 +58,8 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
 
     private boolean bDoHandleCombined;
     private boolean bDoHandleSeparate;
-    private boolean bUseInclusionRules;
+    private boolean bUseInclusionRules = false;
+    private boolean bUseGeoNamesMapping = false;
 
     public static final String PARAM_INCLUSION_RULES = "pInlcusionRules";
     @ConfigurationParameter(
@@ -73,6 +74,18 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
     )
     private String pInlcusionRules;
     private HashMap<String, ArrayList<String>> inclusionRules;
+
+    public static final String PARAM_GEONAMES_MAPPING = "pGeoNamesMapping";
+    @ConfigurationParameter(
+            name = PARAM_GEONAMES_MAPPING,
+            mandatory = false,
+            defaultValue = "classpath:geonames_mapping.json",
+            description = "Another type of inclusion rules but specific to GeoNames annotations. Keys represent the " +
+                    "GeoNames subclass, where the value list represents the classes to be annotated for each matching " +
+                    "GeoNames annotation."
+    )
+    private String pGeoNamesMapping;
+    private HashMap<String, ArrayList<String>> geoNamesMappingRules;
 
     @Override
     public void initialize(UimaContext context) throws ResourceInitializationException {
@@ -96,6 +109,27 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
                 getLogger().info("Parsed inclusion rules: " + inclusionRules.toString());
 
                 bUseInclusionRules = true;
+            } catch (Exception e) {
+                throw new ResourceInitializationException(e);
+            }
+        }
+
+        if (pGeoNamesMapping != null && !pGeoNamesMapping.isEmpty()) {
+            try {
+                String jsonString = pGeoNamesMapping;
+                if (pGeoNamesMapping.startsWith("classpath:")) {
+                    getLogger().info("Reading GeoNames inclusion mapping from classpath file.");
+                    URL resourceURL = Resources.getResource(pGeoNamesMapping.replace("classpath:", ""));
+                    jsonString = Resources.toString(resourceURL, StandardCharsets.UTF_8);
+                } else if (pGeoNamesMapping.startsWith("file:")) {
+                    getLogger().info("Reading GeoNames inclusion mapping from regular file.");
+                    jsonString = IOUtils.toString(new URI(pGeoNamesMapping), StandardCharsets.UTF_8);
+                }
+
+                geoNamesMappingRules = new HashMap(new JSONObject(jsonString).toMap());
+                getLogger().info("Parsed GeoNames inclusion rules: " + geoNamesMappingRules.toString());
+
+                bUseGeoNamesMapping = true;
             } catch (Exception e) {
                 throw new ResourceInitializationException(e);
             }
@@ -141,7 +175,7 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
                         .filter(((Predicate<Token>) coveredTokens::contains).negate())
                         .forEachOrdered(tokenIndexingMap::add);
 
-                HashMap<String, NavigableMap<Integer, Pair<Integer, Annotation>>> inclusionRuleInstances = new HashMap<>();
+                HashMap<String, NavigableMap<Integer, Integer>> inclusionRuleInstances = new HashMap<>();
 
                 // Select all annotations of all given types and add an annotation unit for each item
                 for (Class<? extends Annotation> annotationClass : annotationClasses) {
@@ -186,88 +220,25 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
                         categories.add(category);
 
                         int length = end - begin + 1;
-                        perCasStudy.addUnit(
-                                begin,
-                                length,
-                                perCasAnnotatorIndex.get(viewName),
-                                category
-                        );
-                        perViewAnnotationCount.inc(viewName);
+                        addUnit(begin, length, viewName, category, perCasStudy, perCasAnnotatorIndex, perViewAnnotationCount, globalStudy);
 
                         // Add entry to temporary map for inclusion rule checking
                         if (bUseInclusionRules) {
                             String typeName = annotation.getType().getName();
                             if (!inclusionRuleInstances.containsKey(typeName))
                                 inclusionRuleInstances.put(typeName, new TreeMap<>());
-                            inclusionRuleInstances.get(typeName).put(begin, Pair.of(end, annotation));
-                        }
-
-                        // Add unit to global study
-                        if (bDoHandleCombined) {
-                            globalStudy.addUnit(
-                                    begin,
-                                    length,
-                                    globalAnnotatorIndex.get(viewName),
-                                    category
-                            );
+                            inclusionRuleInstances.get(typeName).put(begin, end);
                         }
                     }
                 }
 
                 // After all annotations have been added, check for inclusion rules
                 if (bUseInclusionRules) {
-                    for (String typeName : inclusionRules.keySet()) {
-                        if (inclusionRuleInstances.containsKey(typeName)) {
-                            for (String typeToInclude : inclusionRules.get(typeName)) {
-                                for (Map.Entry<Integer, Pair<Integer, Annotation>> sourceEntry : inclusionRuleInstances.get(typeName).entrySet()) {
-                                    Integer begin = sourceEntry.getKey(); // Begin
-                                    Integer end = sourceEntry.getValue().getLeft(); // End
-                                    Annotation annotation = sourceEntry.getValue().getRight(); // Annotation
+                    applyGeneralInclusionRules(perCasStudy, perCasAnnotatorIndex, globalStudy, perViewAnnotationCount, viewName, inclusionRuleInstances);
+                }
 
-                                    // Get the last annotation, which begins before the end of the source
-                                    Map.Entry<Integer, Pair<Integer, Annotation>> targetEntry = inclusionRuleInstances.getOrDefault(typeToInclude, new TreeMap<>()).floorEntry(end);
-
-                                    // If such an annotation does not exist or it ends before the source annotation begins,
-                                    // we need to add the included annotation by it self.
-                                    if (targetEntry == null || targetEntry.getValue().getLeft() < begin) {
-                                        String category = getCatgoryName(annotation);
-                                        int length = end - begin + 1;
-
-                                        getLogger().debug(String.format(
-                                                "Adding included annotation: %s < %s (%d, %d)",
-                                                StringUtils.substringAfterLast(typeToInclude, "."),
-                                                StringUtils.substringAfterLast(typeName, "."), begin, end
-                                        ));
-
-                                        perCasStudy.addUnit(
-                                                begin,
-                                                length,
-                                                perCasAnnotatorIndex.get(viewName),
-                                                category
-                                        );
-                                        perViewAnnotationCount.inc(viewName);
-
-                                        // Add unit to global study
-                                        if (bDoHandleCombined) {
-                                            globalStudy.addUnit(
-                                                    begin,
-                                                    length,
-                                                    globalAnnotatorIndex.get(viewName),
-                                                    category
-                                            );
-                                        }
-                                    } else {
-                                        getLogger().debug(String.format(
-                                                "Inclusion already satisfied: %s (%d,%d), %s (%d,%d)",
-                                                StringUtils.substringAfterLast(typeName, "."), begin, end,
-                                                StringUtils.substringAfterLast(typeToInclude, "."), targetEntry.getKey(), targetEntry.getValue().getLeft()
-                                        ));
-                                    }
-                                }
-                            }
-                        }
-                    }
-
+                if (bUseGeoNamesMapping) {
+                    applyGeoNamesInclusionRules(viewCas, viewName, perCasStudy, perCasAnnotatorIndex, globalStudy, perViewAnnotationCount, inclusionRuleInstances);
                 }
             }
 
@@ -285,19 +256,131 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
         }
     }
 
-    @Override
-    public void collectionProcessComplete() throws AnalysisEngineProcessException {
-        if (globalAnnotatorIndex.size() > 1 && bDoHandleCombined) {
-            handleCombined();
+    private void applyGeneralInclusionRules(
+            UnitizingAnnotationStudy perCasStudy,
+            IndexingMap<String> perCasAnnotatorIndex,
+            UnitizingAnnotationStudy globalStudy,
+            CountMap<String> perViewAnnotationCount,
+            String viewName,
+            HashMap<String, NavigableMap<Integer, Integer>> inclusionRuleInstances
+    ) {
+        int inclusionCounter = 0;
+        for (String typeName : inclusionRules.keySet()) {
+            if (inclusionRuleInstances.containsKey(typeName)) {
+                for (Map.Entry<Integer, Integer> sourceEntry : inclusionRuleInstances.get(typeName).entrySet()) {
+                    String shortSourceType = StringUtils.substringAfterLast(typeName, ".");
+                    inclusionCounter = applyInclusionRule(sourceEntry.getKey(), sourceEntry.getValue(), typeName, shortSourceType, inclusionRules, inclusionRuleInstances, viewName, perCasStudy, perCasAnnotatorIndex, perViewAnnotationCount, globalStudy, inclusionCounter);
+                }
+            }
         }
-        super.collectionProcessComplete();
+        getLogger().info(String.format("Added %d units via general inclusion in view '%s'.", inclusionCounter, viewName));
+    }
+
+    private void applyGeoNamesInclusionRules(
+            JCas viewCas,
+            String viewName,
+            UnitizingAnnotationStudy perCasStudy,
+            IndexingMap<String> perCasAnnotatorIndex,
+            UnitizingAnnotationStudy globalStudy,
+            CountMap<String> perViewAnnotationCount,
+            HashMap<String, NavigableMap<Integer, Integer>> inclusionRuleInstances
+    ) {
+        Collection<GeoNamesEntity> geoNamesEntities = JCasUtil.select(viewCas, GeoNamesEntity.class);
+
+        int inclusionCounter = 0;
+        for (String subclass : geoNamesMappingRules.keySet()) {
+            for (GeoNamesEntity entity : geoNamesEntities) {
+                if (entity.getSubclass() != null && entity.getSubclass().equals(subclass)) {
+                    inclusionCounter = applyInclusionRule(entity.getBegin(), entity.getEnd(), subclass, subclass, geoNamesMappingRules, inclusionRuleInstances, viewName, perCasStudy, perCasAnnotatorIndex, perViewAnnotationCount, globalStudy, inclusionCounter);
+                }
+            }
+        }
+        getLogger().info(String.format("Added %d units via GeoNames inclusion in view '%s'.", inclusionCounter, viewName));
+    }
+
+    private int applyInclusionRule(
+            Integer begin,
+            Integer end,
+            String typeName,
+            String shortTypeName,
+            HashMap<String, ArrayList<String>> inclusionRules,
+            HashMap<String, NavigableMap<Integer, Integer>> inclusionRuleInstances,
+            String viewName,
+            UnitizingAnnotationStudy perCasStudy,
+            IndexingMap<String> perCasAnnotatorIndex,
+            CountMap<String> perViewAnnotationCount,
+            UnitizingAnnotationStudy globalStudy,
+            int inclusionCounter
+    ) {
+        for (String typeToInclude : inclusionRules.get(typeName)) {
+            String shortTypeToInclude = StringUtils.substringAfterLast(typeToInclude, ".");
+
+            // Get the last annotation which begins before the end of the source
+            Map.Entry<Integer, Integer> targetEntry = inclusionRuleInstances.getOrDefault(typeToInclude, new TreeMap<>()).floorEntry(end);
+
+            // If such an annotation does not exist or it ends before the source annotation begins,
+            // we need to add the included annotation by it self.
+            if (targetEntry == null || targetEntry.getValue() < begin) {
+                if (!categories.contains(typeToInclude)) {
+                    getLogger().warn(String.format("Category '%s' was not in category set: %s!", typeToInclude, categories));
+                    categories.add(typeToInclude);
+                }
+
+                int length = end - begin + 1;
+
+                getLogger().debug(String.format(
+                        "Adding included annotation: %s < %s (%d, %d)",
+                        shortTypeToInclude,
+                        shortTypeName, begin, end
+                ));
+
+                addUnit(begin, length, viewName, typeToInclude, perCasStudy, perCasAnnotatorIndex, perViewAnnotationCount, globalStudy);
+
+                inclusionCounter++;
+            } else {
+                getLogger().debug(String.format(
+                        "Inclusion already satisfied: %s (%d,%d), %s (%d,%d)",
+                        shortTypeName, begin, end,
+                        shortTypeToInclude, targetEntry.getKey(), targetEntry.getValue()
+                ));
+            }
+        }
+        return inclusionCounter;
+    }
+
+    private void addUnit(
+            Integer begin,
+            int length,
+            String viewName,
+            String category,
+            UnitizingAnnotationStudy perCasStudy,
+            IndexingMap<String> perCasAnnotatorIndex,
+            CountMap<String> perViewAnnotationCount,
+            UnitizingAnnotationStudy globalStudy
+    ) {
+        perCasStudy.addUnit(
+                begin,
+                length,
+                perCasAnnotatorIndex.get(viewName),
+                category
+        );
+        perViewAnnotationCount.inc(viewName);
+
+        // Add unit to global study
+        if (bDoHandleCombined) {
+            globalStudy.addUnit(
+                    begin,
+                    length,
+                    globalAnnotatorIndex.get(viewName),
+                    category
+            );
+        }
     }
 
     private void handleSeparate(JCas jCas, UnitizingAnnotationStudy completeStudy, IndexingMap<String> perCasAnnotatorIndex) {
         if (!pPrintStatistics && !pAnnotateDocument)
             return;
 
-        // Iterate over all previously collected studies
         CountMap<String> categoryCount = new CountMap<>();
         HashMap<String, CountMap<String>> annotatorCategoryCount = new HashMap<>();
 
@@ -405,6 +488,14 @@ public class UnitizingIAACollectionProcessingEngine extends AbstractIAAEngine {
                 getLogger().error("Error during statistics printing.", e);
             }
         }
+    }
+
+    @Override
+    public void collectionProcessComplete() throws AnalysisEngineProcessException {
+        if (globalAnnotatorIndex.size() > 1 && bDoHandleCombined) {
+            handleCombined();
+        }
+        super.collectionProcessComplete();
     }
 
 }
