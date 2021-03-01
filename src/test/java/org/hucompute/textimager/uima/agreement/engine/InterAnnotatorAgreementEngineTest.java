@@ -10,7 +10,7 @@ import org.dkpro.core.io.xmi.XmiReader;
 import org.hucompute.textimager.uima.agreement.engine.serialization.CsvPrinterEngine;
 import org.hucompute.textimager.uima.agreement.engine.ttlab.TTLabUnitizingIAACollectionProcessingEngine;
 import org.hucompute.textimager.uima.agreement.engine.unitizing.UnitizingIAACollectionProcessingEngine;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.texttechnologylab.annotation.AbstractNamedEntity;
 import org.texttechnologylab.annotation.NamedEntity;
 import org.texttechnologylab.utilities.uima.reader.TextAnnotatorRepositoryCollectionReader;

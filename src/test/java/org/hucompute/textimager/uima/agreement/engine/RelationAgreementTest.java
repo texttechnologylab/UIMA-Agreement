@@ -8,7 +8,7 @@ import org.apache.uima.fit.pipeline.SimplePipeline;
 import org.dkpro.core.io.xmi.XmiReader;
 import org.hucompute.textimager.uima.agreement.engine.relational.RelationAnnotationAgreement;
 import org.hucompute.textimager.uima.agreement.engine.unitizing.UnitizingIAACollectionProcessingEngine;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.texttechnologylab.annotation.AbstractNamedEntity;
 import org.texttechnologylab.annotation.NamedEntity;
 
