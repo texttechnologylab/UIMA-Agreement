@@ -15,7 +15,7 @@ import org.apache.uima.util.CasIOUtils;
 import org.hucompute.textimager.uima.agreement.engine.coding.CodingAgreementAnnotatorEngine;
 import org.hucompute.textimager.uima.agreement.engine.coding.SetSelectionStrategy;
 import org.hucompute.textimager.uima.agreement.engine.unitizing.UnitizingAgreementAnnotatorEngine;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.texttechnologylab.annotation.AbstractNamedEntity;
 import org.texttechnologylab.annotation.NamedEntity;
 import org.texttechnologylab.iaa.Agreement;
