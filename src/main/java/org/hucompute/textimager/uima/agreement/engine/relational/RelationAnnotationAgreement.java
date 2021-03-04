@@ -71,6 +71,13 @@ public class RelationAnnotationAgreement extends AbstractIAAEngine {
     public void initialize(UimaContext context) throws ResourceInitializationException {
         annotationClasses = ImmutableSet.of(Entity.class, Event.class, Signal.class);
         super.initialize(context);
+        switch (pMultiCasHandling) {
+            case COMBINED:
+            case BOTH:
+                logger.warn(String.format("RelationAnnotationAgreement.PARAM_MULTI_CAS_HANDLING=%s is not implemented, " +
+                        "defaulting to SEPARATE.", pMultiCasHandling));
+                break;
+        }
     }
 
     @Override
@@ -189,7 +196,9 @@ public class RelationAnnotationAgreement extends AbstractIAAEngine {
 
             switch (pMultiCasHandling) {
                 case SEPARATE:
+                case COMBINED:
                 case BOTH:
+                default:
                     handleSeparate(
                             jCas,
                             predicateIdentificationStudy,
@@ -207,6 +216,15 @@ public class RelationAnnotationAgreement extends AbstractIAAEngine {
         } catch (CASException e) {
             e.printStackTrace();
         }
+    }
+
+    @Nonnull
+    protected JCas initializeIaaView(JCas jCas) {
+        JCas viewIAA = JCasUtil.getView(jCas, "IAA", true);
+        if (viewIAA.getDocumentText() == null)
+            viewIAA.setDocumentText(jCas.getDocumentText());
+        viewIAA.removeAllIncludingSubtypes(AgreementValue.type);
+        return viewIAA;
     }
 
     private void handleSeparate(
