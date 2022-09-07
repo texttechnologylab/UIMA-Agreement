@@ -1,9 +1,10 @@
 # UIMA-Agreement
 
-UIMA Inter-Annotator Agreement Module for the [TextImager](https://github.com/texttechnologylab/text-)/[TextAnnotator](https://www.texttechnologylab.org/applications/textannotator/) Pipeline
+UIMA Inter-Annotator Agreement Module for the [TextImager](https://github.com/texttechnologylab/text-)/[TextAnnotator](https://www.texttechnologylab.org/applications/textannotator/) Pipeline created as part of the [BIOfid](https://www.biofid.de/en/) Project
 
-[![Paper](http://img.shields.io/badge/paper-ACL--anthology-B31B1B.svg)](https://aclanthology.org/2020.lrec-1.112/)
-[![Conference](http://img.shields.io/badge/conference-LREC--2020-4b44ce.svg)](https://lrec2020.lrec-conf.org/)
+[![BIOfid](http://img.shields.io/badge/project-BIOfid-4C7828.svg)](https://www.biofid.de/en/)
+[![Paper](http://img.shields.io/badge/paper-ACL_Anthology-B31B1B.svg)](https://aclanthology.org/2020.lrec-1.112/)
+[![Conference](http://img.shields.io/badge/conference-LREC_2020-4b44ce.svg)](https://lrec2020.lrec-conf.org/)
 [![TextAnnotator](http://img.shields.io/badge/demo-TextAnnotator-378cc3.svg)](http://www.textannotator.texttechnologylab.org/)
 [![](https://jitpack.io/v/texttechnologylab/UIMA-Agreement.svg)](https://jitpack.io/#texttechnologylab/UIMA-Agreement)
 [![version](https://img.shields.io/github/license/texttechnologylab/UIMA-Agreement)]()
