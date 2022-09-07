@@ -6,7 +6,8 @@ UIMA Inter-Annotator Agreement Module for the [TextImager](https://github.com/te
 [![Conference](http://img.shields.io/badge/conference-LREC--2020-4b44ce.svg)](https://lrec2020.lrec-conf.org/)
 [![TextAnnotator](http://img.shields.io/badge/demo-TextAnnotator-378cc3.svg)](http://www.textannotator.texttechnologylab.org/)
 [![](https://jitpack.io/v/texttechnologylab/UIMA-Agreement.svg)](https://jitpack.io/#texttechnologylab/UIMA-Agreement)
-
+[![version](https://img.shields.io/github/license/texttechnologylab/UIMA-Agreement)]()
+[![latest](https://img.shields.io/github/v/release/texttechnologylab/UIMA-Agreement)]()
 ## Description
 
 ### UIMA Analysis Engines
@@ -53,7 +54,7 @@ IF you want to use the project, please cite:
 
 ### BibTeX
 ```
-@inproceedings{abrami-etal-2020-textannotator,
+@inproceedings{Abrami:et:al:2020,
     title = "{T}ext{A}nnotator: A {UIMA} Based Tool for the Simultaneous and Collaborative Annotation of Texts",
     author = "Abrami, Giuseppe  and
       Stoeckel, Manuel  and
