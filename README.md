@@ -1,9 +1,13 @@
 # UIMA-Agreement
 
-## Description
-UIMA Inter-Annotator Agreement Module for the TextImager/TextAnnotator Pipeline
+UIMA Inter-Annotator Agreement Module for the [TextImager](https://github.com/texttechnologylab/text-)/[TextAnnotator](https://www.texttechnologylab.org/applications/textannotator/) Pipeline
 
+[![Paper](http://img.shields.io/badge/paper-ACL--anthology-B31B1B.svg)](https://aclanthology.org/2020.lrec-1.112/)
+[![Conference](http://img.shields.io/badge/conference-LREC--2020-4b44ce.svg)](https://lrec2020.lrec-conf.org/)
+[![TextAnnotator](http://img.shields.io/badge/demo-TextAnnotator-378cc3.svg)](http://www.textannotator.texttechnologylab.org/)
 [![](https://jitpack.io/v/texttechnologylab/UIMA-Agreement.svg)](https://jitpack.io/#texttechnologylab/UIMA-Agreement)
+
+## Description
 
 ### UIMA Analysis Engines
 The engines work with any type system.
@@ -42,6 +46,30 @@ The coding engines can create an agreement score per token if `PARAM_ANNOTATE_TO
 
 #### Document-level Annotations
 Both coding and unitizing engines can create an agreement annotation over an entire document if `PARAM_ANNOTATE_DOCUMENT` is set `true`.
+
+## Citation
+IF you want to use the project, please cite:
+> Giuseppe Abrami, Manuel Stoeckel, and Alexander Mehler. 2020. TextAnnotator: A UIMA Based Tool for the Simultaneous and Collaborative Annotation of Texts. In Proceedings of the 12th Language Resources and Evaluation Conference, pages 891–900, Marseille, France. European Language Resources Association. ([link](https://aclanthology.org/2020.lrec-1.112/))
+
+### BibTeX
+```
+@inproceedings{abrami-etal-2020-textannotator,
+    title = "{T}ext{A}nnotator: A {UIMA} Based Tool for the Simultaneous and Collaborative Annotation of Texts",
+    author = "Abrami, Giuseppe  and
+      Stoeckel, Manuel  and
+      Mehler, Alexander",
+    booktitle = "Proceedings of the 12th Language Resources and Evaluation Conference",
+    month = may,
+    year = "2020",
+    address = "Marseille, France",
+    publisher = "European Language Resources Association",
+    url = "https://aclanthology.org/2020.lrec-1.112",
+    pages = "891--900",
+    abstract = "The annotation of texts and other material in the field of digital humanities and Natural Language Processing (NLP) is a common task of research projects. At the same time, the annotation of corpora is certainly the most time- and cost-intensive component in research projects and often requires a high level of expertise according to the research interest. However, for the annotation of texts, a wide range of tools is available, both for automatic and manual annotation. Since the automatic pre-processing methods are not error-free and there is an increasing demand for the generation of training data, also with regard to machine learning, suitable annotation tools are required. This paper defines criteria of flexibility and efficiency of complex annotations for the assessment of existing annotation tools. To extend this list of tools, the paper describes TextAnnotator, a browser-based, multi-annotation system, which has been developed to perform platform-independent multimodal annotations and annotate complex textual structures. The paper illustrates the current state of development of TextAnnotator and demonstrates its ability to evaluate annotation quality (inter-annotator agreement) at runtime. In addition, it will be shown how annotations of different users can be performed simultaneously and collaboratively on the same document from different platforms using UIMA as the basis for annotation.",
+    language = "English",
+    ISBN = "979-10-95546-34-4",
+}
+```
 
 
 ## References
