@@ -207,7 +207,7 @@ public class CodingIAACollectionProcessingEngine extends AbstractIAAEngine {
 				
 				// Add all annotations of each given class over each token to
 				for (Class<? extends Annotation> annotationClass : annotationClasses) {
-					Map<Token, Collection<Annotation>> annotationCoveringTokenIndex = indexCovering(viewCas, Token.class, annotationClass);
+					Map<Token, List<Annotation>> annotationCoveringTokenIndex = indexCovering(viewCas, Token.class, annotationClass);
 					for (Token token : tokenIndexingMap.keySet()) {
 						if (!coveredTokens.contains(token)) {
 							Integer index = tokenIndexingMap.get(token);
