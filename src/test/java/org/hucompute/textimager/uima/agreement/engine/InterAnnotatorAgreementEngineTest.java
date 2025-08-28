@@ -9,11 +9,11 @@ import org.apache.uima.fit.pipeline.SimplePipeline;
 import org.dkpro.core.io.xmi.XmiReader;
 import org.hucompute.textimager.uima.agreement.engine.serialization.CsvPrinterEngine;
 import org.hucompute.textimager.uima.agreement.engine.ttlab.TTLabUnitizingIAACollectionProcessingEngine;
+import org.hucompute.textimager.uima.agreement.engine.ttlab.TextAnnotatorRepositoryCollectionReader;
 import org.hucompute.textimager.uima.agreement.engine.unitizing.UnitizingIAACollectionProcessingEngine;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.texttechnologylab.annotation.AbstractNamedEntity;
 import org.texttechnologylab.annotation.NamedEntity;
-import org.texttechnologylab.utilities.uima.reader.TextAnnotatorRepositoryCollectionReader;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;

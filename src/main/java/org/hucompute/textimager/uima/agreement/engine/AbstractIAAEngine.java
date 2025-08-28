@@ -11,7 +11,6 @@ import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CASException;
 import org.apache.uima.fit.component.JCasConsumer_ImplBase;
 import org.apache.uima.fit.descriptor.ConfigurationParameter;
-import org.apache.uima.fit.internal.ExtendedLogger;
 import org.apache.uima.fit.util.JCasUtil;
 import org.apache.uima.jcas.JCas;
 import org.apache.uima.jcas.cas.DoubleArray;
@@ -20,6 +19,7 @@ import org.apache.uima.jcas.cas.StringArray;
 import org.apache.uima.jcas.cas.TOP;
 import org.apache.uima.jcas.tcas.Annotation;
 import org.apache.uima.resource.ResourceInitializationException;
+import org.apache.uima.util.Logger;
 import org.dkpro.core.api.parameter.ComponentParameters;
 import org.dkpro.statistics.agreement.IAgreementMeasure;
 import org.dkpro.statistics.agreement.ICategorySpecificAgreement;
@@ -200,7 +200,7 @@ public abstract class AbstractIAAEngine extends JCasConsumer_ImplBase {
 	)
 	protected Boolean pAnnotateDocument;
 
-	protected ExtendedLogger logger;
+	protected Logger logger;
 	protected long viewCount;
 	protected LinkedHashSet<String> validViewNames;
 	protected CSVFormat csvFormat = CSVFormat.DEFAULT.withCommentMarker('#').withDelimiter(';');

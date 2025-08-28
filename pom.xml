@@ -2,19 +2,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.hucompute.textimager.uima</groupId>
-        <artifactId>textimager-uima</artifactId>
-        <version>0.3.0</version>
-    </parent>
+
     <groupId>org.texttechnologylab</groupId>
     <artifactId>textimager-uima-agreement</artifactId>
-    <version>1.2.2</version>
+    <version>1.3.0</version>
 
     <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <dkpro.core.version>1.12.0</dkpro.core.version>
+        <dkpro.core.version>2.4.0</dkpro.core.version>
+        <ttlab.typesystem.version>ba474b7</ttlab.typesystem.version>
     </properties>
 
     <dependencyManagement>
@@ -37,6 +36,16 @@
     </dependencyManagement>
 
     <dependencies>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.25.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.25.1</version>
+        </dependency>
         <dependency>
             <groupId>commons-cli</groupId>
             <artifactId>commons-cli</artifactId>
@@ -80,7 +89,7 @@
         <dependency>
             <groupId>org.dkpro.statistics</groupId>
             <artifactId>dkpro-statistics-agreement</artifactId>
-            <version>2.1.0</version>
+            <version>2.2.1</version>
         </dependency>
         <dependency>
             <groupId>org.dkpro.core</groupId>
@@ -89,6 +98,10 @@
         <dependency>
             <groupId>org.dkpro.core</groupId>
             <artifactId>dkpro-core-api-xml-asl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.dkpro.core</groupId>
+            <artifactId>dkpro-core-io-xmi-asl</artifactId>
         </dependency>
         <dependency>
             <groupId>org.dkpro.core</groupId>
@@ -109,7 +122,7 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20190722</version>
+            <version>20250517</version>
         </dependency>
         <dependency>
             <groupId>com.github.texttechnologylab</groupId>
@@ -120,12 +133,24 @@
         <dependency>
             <groupId>com.github.texttechnologylab</groupId>
             <artifactId>Utilities</artifactId>
-            <version>1.0.9-uima-2.10.4</version>
+            <version>3.0.2</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>5.7.0-RC1</version>
+            <version>5.13.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.13.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -154,8 +179,8 @@
                         <artifactId>maven-compiler-plugin</artifactId>
                         <version>3.6.2</version>
                         <configuration>
-                            <source>1.8</source>
-                            <target>1.8</target>
+                            <source>21</source>
+                            <target>21</target>
                         </configuration>
                     </plugin>
                     <plugin>
@@ -166,7 +191,7 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <version>2.22.0</version>
                         <configuration>
-                            <argLine>-Dorg.apache.uima.logger.class=org.texttechnologylab.utilities.uima.util.Log4j2Logger_impl</argLine>
+<!--                            <argLine>-Dorg.apache.uima.logger.class=org.texttechnologylab.utilities.uima.util.Log4j2Logger_impl</argLine>-->
                         </configuration>
                     </plugin>
                 </plugins>
@@ -210,8 +235,8 @@
                         <artifactId>maven-compiler-plugin</artifactId>
                         <version>3.6.2</version>
                         <configuration>
-                            <source>1.8</source>
-                            <target>1.8</target>
+                            <source>21</source>
+                            <target>21</target>
                         </configuration>
                     </plugin>
                     <plugin>
@@ -252,11 +277,6 @@
 
     <repositories>
         <repository>
-            <id>hu-central</id>
-            <name>alba-releases</name>
-            <url>http://service.hucompute.org/artifactory/libs-snapshot-local</url>
-        </repository>
-        <repository>
             <id>central</id>
             <name>Maven Plugin Repository</name>
             <url>https://repo1.maven.org/maven2</url>
@@ -273,17 +293,5 @@
             <url>https://jitpack.io</url>
         </repository>
     </repositories>
-    <distributionManagement>
-        <repository>
-            <id>hu-central</id>
-            <name>alba-releases</name>
-            <url>http://service.hucompute.org/artifactory/libs-snapshot-local</url>
-        </repository>
-        <snapshotRepository>
-            <id>hu-snapshots</id>
-            <name>alba-snapshots</name>
-            <url>http://service.hucompute.org/artifactory/libs-snapshot-local</url>
-        </snapshotRepository>
-    </distributionManagement>
 
 </project>

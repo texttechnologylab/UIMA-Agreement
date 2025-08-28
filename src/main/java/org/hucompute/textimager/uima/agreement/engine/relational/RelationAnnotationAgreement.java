@@ -116,7 +116,7 @@ public class RelationAnnotationAgreement extends AbstractIAAEngine {
             // Create a set of all multi-tokens, that are covering another token
             IndexingMap<Token> tokenIndexingMap = getIndexingMap(jCas, Token.class);
 
-            Map<Sentence, Collection<Token>> sentenceTokenIndex = JCasUtil.indexCovered(jCas, Sentence.class, Token.class);
+            Map<Sentence, List<Token>> sentenceTokenIndex = JCasUtil.indexCovered(jCas, Sentence.class, Token.class);
 
             IndexingMap<Sentence> sentenceIndexingMap = getIndexingMap(jCas, Sentence.class);
             for (int i = 0; i < sentenceIndexingMap.size(); i++) {
@@ -533,13 +533,13 @@ public class RelationAnnotationAgreement extends AbstractIAAEngine {
         private final ArrayList<? extends Link> links;
         private final ArrayList<? extends Entity> predicates;
         private final ArrayList<? extends Entity> arguments;
-        private final Map<Sentence, Collection<Entity>> sentencesCoveredPredicates;
-        private final Map<Entity, Collection<Token>> entityTokenLookup;
-        private final Map<Entity, Collection<Token>> predicateTokenLookup;
-        private final Map<Entity, Collection<Token>> argumentTokenLookup;
+        private final Map<Sentence, List<Entity>> sentencesCoveredPredicates;
+        private final Map<Entity, List<Token>> entityTokenLookup;
+        private final Map<Entity, List<Token>> predicateTokenLookup;
+        private final Map<Entity, List<Token>> argumentTokenLookup;
         private final Map<Token, Entity> tokenPredicateLookup;
         private final HashMap<Entity, HashMap<Entity, String>> predicateArgumentLookup;
-        private final Map<Entity, Collection<SemanticSource>> entitySemanticSourceLookup;
+        private final Map<Entity, List<SemanticSource>> entitySemanticSourceLookup;
 
         public AnnotationContainer(JCas viewCas, String viewName, Integer raterIdx) {
             this.viewCas = viewCas;
@@ -652,7 +652,7 @@ public class RelationAnnotationAgreement extends AbstractIAAEngine {
      * @param <V>      The value type.
      * @return A new {@link HashMap} containing the reversed, flattened mapping.
      */
-    public static <K, V> HashMap<V, K> reverseMapFlat(Map<K, Collection<V>> inputMap) {
+    public static <K, V> HashMap<V, K> reverseMapFlat(Map<K, List<V>> inputMap) {
         HashMap<V, K> reversedMap = new HashMap<>();
         inputMap.forEach((key, values) -> {
             for (V value : values) {

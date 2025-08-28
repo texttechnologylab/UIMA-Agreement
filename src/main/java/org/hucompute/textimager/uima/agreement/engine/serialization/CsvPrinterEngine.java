@@ -139,8 +139,8 @@ public class CsvPrinterEngine extends JCasAnnotator_ImplBase {
 							.collect(Collectors.toCollection(HashSet::new));
 					
 					for (Class<? extends Annotation> type : Lists.newArrayList(NamedEntity.class, AbstractNamedEntity.class)) {
-						Map<Annotation, Collection<Token>> neIndex = JCasUtil.indexCovered(viewCas, type, Token.class);
-						for (Map.Entry<Annotation, Collection<Token>> entry : neIndex.entrySet()) {
+						Map<Annotation, List<Token>> neIndex = JCasUtil.indexCovered(viewCas, type, Token.class);
+						for (Map.Entry<Annotation, List<Token>> entry : neIndex.entrySet()) {
 							Annotation ne = entry.getKey();
 							if (!pFilterFingerprinted || fingerprinted.contains(ne))
 								for (Token token : entry.getValue()) {
